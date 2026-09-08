@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"><style>*{box-sizing:border-box}body{margin:0;background:#eceae5;font-family:'Instrument Sans',system-ui,sans-serif;color:#1c1c1a;-webkit-font-smoothing:antialiased}a{color:oklch(0.52 0.19 268);text-decoration:none}a:hover{color:oklch(0.44 0.19 268)}input,button,textarea{font:inherit;color:inherit}</style></helmet>
+
+<div style="padding:36px 44px 12px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+<div style="font:700 15px/1 'Instrument Sans';letter-spacing:-0.01em">Hilo POS &amp; Inventory — UI mockups</div>
+<div style="font:400 12px/1.4 'Instrument Sans';color:#71717a">Local intranet · Shadcn-flavoured neutral surface, primary oklch(0.52 0.19 268) · Instrument Sans + JetBrains Mono for figures</div>
+</div>
+
+<section style="padding:24px 44px 34px;border-bottom:1px solid rgba(0,0,0,.07)">
+<div style="display:flex;align-items:baseline;gap:10px;margin:0 0 18px">
+<span style="font:600 10px/1 'JetBrains Mono';padding:4px 7px;background:#1c1c1a;color:#fff;border-radius:4px">S1</span>
+<span style="font:600 13px/1.2 'Instrument Sans'">POS Dashboard — desktop / laptop checkout</span>
+<span style="font:400 12px/1.2 'Instrument Sans';color:#71717a">1440×900 · search grid left, live ticket right</span>
+</div>
+
+<div style="width:1440px;background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:12px;box-shadow:0 12px 32px -18px rgba(0,0,0,.35);overflow:hidden">
+<div style="height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;background:#f4f4f2;border-bottom:1px solid rgba(0,0,0,.07)">
+<span style="width:10px;height:10px;border-radius:50%;background:#e5695f"></span><span style="width:10px;height:10px;border-radius:50%;background:#e2b356"></span><span style="width:10px;height:10px;border-radius:50%;background:#69b57c"></span>
+<div style="margin-left:12px;flex:1;max-width:320px;height:22px;border-radius:6px;background:#fff;border:1px solid rgba(0,0,0,.08);display:flex;align-items:center;padding:0 9px;font:400 11px/1 'JetBrains Mono';color:#8a8a85">hilo.local/pos</div>
+</div>
+
+<div style="display:flex;height:860px">
+  <div style="width:72px;background:#1c1c1a;display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:8px">
+    <div style="width:38px;height:38px;border-radius:10px;background:oklch(0.52 0.19 268);color:#fff;display:grid;place-items:center;font:700 15px/1 'Instrument Sans';margin-bottom:10px">H</div>
+    <div style="width:44px;height:40px;border-radius:9px;background:rgba(255,255,255,.14);color:#fff;display:grid;place-items:center;font:600 9px/1 'JetBrains Mono'">POS</div>
+    <div style="width:44px;height:40px;border-radius:9px;color:rgba(255,255,255,.5);display:grid;place-items:center;font:600 9px/1 'JetBrains Mono'">INV</div>
+    <div style="width:44px;height:40px;border-radius:9px;color:rgba(255,255,255,.5);display:grid;place-items:center;font:600 9px/1 'JetBrains Mono'">APT</div>
+    <div style="width:44px;height:40px;border-radius:9px;color:rgba(255,255,255,.5);display:grid;place-items:center;font:600 9px/1 'JetBrains Mono'">RPT</div>
+    <div style="flex:1"></div>
+    <div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;font:600 11px/1 'Instrument Sans'">MR</div>
+  </div>
+
+  <div style="flex:1;min-width:0;background:#faf9f7;display:flex;flex-direction:column">
+    <div style="padding:18px 24px 14px;border-bottom:1px solid rgba(0,0,0,.07);background:#fff;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="flex:1;height:40px;border:1px solid rgba(0,0,0,.12);border-radius:8px;display:flex;align-items:center;gap:10px;padding:0 12px;background:#fdfdfc">
+          <span style="width:14px;height:14px;border:1.5px solid #a1a1aa;border-radius:50%"></span>
+          <span style="font:400 14px/1 'Instrument Sans';color:#a1a1aa">Search by name, brand or scan SKU…</span>
+          <span style="margin-left:auto;font:500 10px/1 'JetBrains Mono';color:#a1a1aa;border:1px solid rgba(0,0,0,.12);border-radius:4px;padding:3px 5px">F2</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border:1px solid rgba(0,0,0,.1);border-radius:999px">
+          <span style="width:26px;height:26px;border-radius:50%;background:oklch(0.52 0.19 268);color:#fff;display:grid;place-items:center;font:600 10px/1 'Instrument Sans'">MR</span>
+          <span style="font:500 12px/1 'Instrument Sans'">Marisol R.</span>
+          <span style="font:600 9px/1 'JetBrains Mono';color:oklch(0.52 0.19 268);background:oklch(0.95 0.03 268);padding:3px 5px;border-radius:4px">VENDOR</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span style="font:500 12px/1 'Instrument Sans';padding:7px 12px;border-radius:999px;background:#1c1c1a;color:#fff">All · 412</span>
+        <span style="font:500 12px/1 'Instrument Sans';padding:7px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);color:#52525b">Denim</span>
+        <span style="font:500 12px/1 'Instrument Sans';padding:7px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);color:#52525b">Tops</span>
+        <span style="font:500 12px/1 'Instrument Sans';padding:7px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);color:#52525b">Jackets</span>
+        <span style="font:500 12px/1 'Instrument Sans';padding:7px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);color:#52525b">Dresses</span>
+        <span style="font:500 12px/1 'Instrument Sans';padding:7px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);color:#52525b">Footwear</span>
+        <span style="font:500 12px/1 'Instrument Sans';padding:7px 12px;border-radius:999px;border:1px solid rgba(0,0,0,.12);color:#52525b">Accessories</span>
+      </div>
+    </div>
+
+    <div style="flex:1;overflow:hidden;padding:20px 24px">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+        <sc-for list="{{ products }}" as="p" hint-placeholder-count="8">
+          <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)" style-hover="border-color:oklch(0.52 0.19 268);box-shadow:0 6px 16px -10px rgba(0,0,0,.35)">
+            <div style="height:132px;background-image:repeating-linear-gradient(135deg,#f1f0ed 0 8px,#e7e5e0 8px 16px);display:grid;place-items:center;border-bottom:1px solid rgba(0,0,0,.06)">
+              <span style="font:500 9px/1 'JetBrains Mono';color:#9a9a94;background:rgba(255,255,255,.8);padding:4px 6px;border-radius:4px">product shot</span>
+            </div>
+            <div style="padding:11px 12px 12px;display:flex;flex-direction:column;gap:7px">
+              <div style="font:400 10px/1 'JetBrains Mono';color:#a1a1aa;letter-spacing:.02em">{{ p.brand }}</div>
+              <div style="font:600 13px/1.25 'Instrument Sans';text-wrap:pretty">{{ p.name }}</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                <span style="font:600 14px/1 'JetBrains Mono'">{{ p.price }}</span>
+                <span style="font:500 10px/1 'JetBrains Mono';color:#52525b;background:#f4f4f2;border-radius:4px;padding:4px 6px">{{ p.stockLabel }}</span>
+              </div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap">
+                <sc-for list="{{ p.sizes }}" as="s" hint-placeholder-count="4">
+                  <span style="font:500 10px/1 'JetBrains Mono';border:1px solid rgba(0,0,0,.12);border-radius:4px;padding:4px 6px;color:#52525b">{{ s }}</span>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="width:412px;border-left:1px solid rgba(0,0,0,.09);background:#fff;display:flex;flex-direction:column">
+    <div style="padding:18px 20px 14px;border-bottom:1px solid rgba(0,0,0,.07);display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between">
+        <span style="font:600 14px/1 'Instrument Sans'">Ticket #1042</span>
+        <span style="font:400 11px/1 'JetBrains Mono';color:#71717a">Aug 19, 2026 · 14:38</span>
+      </div>
+      <div style="display:flex;gap:4px;padding:4px;background:#f4f4f2;border-radius:9px">
+        <button onClick="{{ setDirect }}" style="{{ directTabStyle }}">Direct Sale</button>
+        <button onClick="{{ setLayaway }}" style="{{ layawayTabStyle }}">Layaway · Apartado</button>
+      </div>
+    </div>
+
+    <div style="flex:1;overflow:hidden;padding:14px 20px;display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ cart }}" as="c" hint-placeholder-count="3">
+        <div style="display:flex;gap:11px;align-items:center;padding:10px;border:1px solid rgba(0,0,0,.08);border-radius:9px">
+          <div style="width:44px;height:52px;flex:none;border-radius:6px;background-image:repeating-linear-gradient(135deg,#f1f0ed 0 6px,#e7e5e0 6px 12px)"></div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+            <div style="font:600 12.5px/1.2 'Instrument Sans'">{{ c.name }}</div>
+            <div style="font:400 10.5px/1.2 'JetBrains Mono';color:#71717a">{{ c.meta }}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px">
+            <span style="width:22px;height:22px;border:1px solid rgba(0,0,0,.12);border-radius:6px;display:grid;place-items:center;font:600 12px/1 'Instrument Sans';color:#52525b">−</span>
+            <span style="font:600 12px/1 'JetBrains Mono';min-width:12px;text-align:center">{{ c.qty }}</span>
+            <span style="width:22px;height:22px;border:1px solid rgba(0,0,0,.12);border-radius:6px;display:grid;place-items:center;font:600 12px/1 'Instrument Sans';color:#52525b">+</span>
+          </div>
+          <span style="font:600 12.5px/1 'JetBrains Mono';min-width:64px;text-align:right">{{ c.total }}</span>
+        </div>
+      </sc-for>
+
+      <div style="display:flex;gap:9px;padding:10px 11px;border-radius:8px;background:oklch(0.96 0.02 268);border:1px solid oklch(0.9 0.04 268)">
+        <span style="font:600 10px/1.4 'JetBrains Mono';color:oklch(0.45 0.19 268)">i</span>
+        <span style="font:400 11px/1.45 'Instrument Sans';color:oklch(0.42 0.12 268);text-wrap:pretty">Stock rule: descuenta <strong>1 unidad</strong> del modelo general, sin importar la variante de color.</span>
+      </div>
+
+      <sc-if value="{{ isLayaway }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:2px;border:1px solid rgba(0,0,0,.1);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;background:#fdfdfc">
+          <div style="font:600 12px/1 'Instrument Sans'">Layaway details</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font:500 11px/1 'Instrument Sans';color:#52525b">Customer name</label>
+            <div style="height:36px;border:1px solid rgba(0,0,0,.13);border-radius:7px;display:flex;align-items:center;padding:0 10px;background:#fff;font:400 13px/1 'Instrument Sans'">Ana Lucía Ferrer</div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+              <label style="font:500 11px/1 'Instrument Sans';color:#52525b">Initial payment (abono)</label>
+              <div style="height:36px;border:1.5px solid oklch(0.52 0.19 268);border-radius:7px;display:flex;align-items:center;padding:0 10px;background:#fff;font:600 13px/1 'JetBrains Mono'">$ {{ abono }}</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+              <label style="font:500 11px/1 'Instrument Sans';color:#52525b">Phone</label>
+              <div style="height:36px;border:1px solid rgba(0,0,0,.13);border-radius:7px;display:flex;align-items:center;padding:0 10px;background:#fff;font:400 13px/1 'JetBrains Mono';color:#71717a">55 1420 8877</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 12px;border-radius:8px;background:oklch(0.97 0.03 90);border:1px solid oklch(0.88 0.09 85)">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <span style="font:500 10px/1 'JetBrains Mono';color:oklch(0.48 0.1 70);letter-spacing:.04em">DUE DATE · 15 DAYS</span>
+              <span style="font:700 14px/1 'Instrument Sans';color:oklch(0.4 0.1 60)">Sep 3, 2026</span>
+            </div>
+            <span style="font:500 10.5px/1.35 'Instrument Sans';color:oklch(0.45 0.1 65);text-align:right;max-width:150px">Auto-returns to stock &amp; abono is penalized if unpaid</span>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="border-top:1px solid rgba(0,0,0,.07);padding:16px 20px 18px;display:flex;flex-direction:column;gap:9px;background:#fdfdfc">
+      <div style="display:flex;justify-content:space-between;font:400 12px/1 'Instrument Sans';color:#52525b"><span>Subtotal · 3 items</span><span style="font-family:'JetBrains Mono'">$ 3,247.00</span></div>
+      <div style="display:flex;justify-content:space-between;font:400 12px/1 'Instrument Sans';color:#52525b"><span>Discount</span><span style="font-family:'JetBrains Mono'">— $ 0.00</span></div>
+      <div style="height:1px;background:rgba(0,0,0,.08);margin:3px 0"></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:600 14px/1 'Instrument Sans'">{{ payLabel }}</span><span style="font:700 22px/1 'JetBrains Mono'">$ {{ payNow }}</span></div>
+      <sc-if value="{{ isLayaway }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;justify-content:space-between;font:500 11.5px/1 'Instrument Sans';color:#71717a"><span>Remaining balance due Sep 3</span><span style="font-family:'JetBrains Mono'">$ {{ remaining }}</span></div>
+      </sc-if>
+      <button style="margin-top:6px;height:46px;border:none;border-radius:9px;background:oklch(0.52 0.19 268);color:#fff;font:600 14px/1 'Instrument Sans';cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px" style-hover="background:oklch(0.45 0.19 268)">{{ ctaLabel }}<span style="font:500 10px/1 'JetBrains Mono';opacity:.7">⌘↵</span></button>
+      <div style="display:flex;gap:9px">
+        <button style="flex:1;height:36px;border:1px solid rgba(0,0,0,.13);border-radius:8px;background:#fff;font:500 12px/1 'Instrument Sans';color:#52525b;cursor:pointer">Hold ticket</button>
+        <button style="flex:1;height:36px;border:1px solid rgba(0,0,0,.13);border-radius:8px;background:#fff;font:500 12px/1 'Instrument Sans';color:oklch(0.5 0.19 25);cursor:pointer">Void</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</section>
+
+<section style="padding:24px 44px 34px;border-bottom:1px solid rgba(0,0,0,.07)">
+<div style="display:flex;align-items:baseline;gap:10px;margin:0 0 18px">
+<span style="font:600 10px/1 'JetBrains Mono';padding:4px 7px;background:#1c1c1a;color:#fff;border-radius:4px">S2</span>
+<span style="font:600 13px/1.2 'Instrument Sans'">Inventory Creation — mobile first</span>
+<span style="font:400 12px/1.2 'Instrument Sans';color:#71717a">390×844 · Single Item vs Batch Entry in one form</span>
+</div>
+
+<div style="display:flex;gap:36px;align-items:flex-start;flex-wrap:wrap">
+  <div style="width:412px;flex:none;background:#1c1c1a;border-radius:46px;padding:11px;box-shadow:0 18px 40px -20px rgba(0,0,0,.5)">
+    <div style="background:#faf9f7;border-radius:36px;overflow:hidden;height:844px;display:flex;flex-direction:column">
+      <div style="height:46px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 6px;background:#fff;font:600 12px/1 'JetBrains Mono'">
+        <span>14:38</span><span style="color:#a1a1aa">hilo.local ⟡ ▮▮▮</span>
+      </div>
+      <div style="padding:12px 18px 14px;background:#fff;border-bottom:1px solid rgba(0,0,0,.07);display:flex;align-items:center;gap:12px">
+        <span style="width:32px;height:32px;border:1px solid rgba(0,0,0,.12);border-radius:8px;display:grid;place-items:center;font:500 15px/1 'Instrument Sans';color:#52525b">‹</span>
+        <div style="flex:1;display:flex;flex-direction:column;gap:2px">
+          <span style="font:600 15px/1.1 'Instrument Sans'">New product</span>
+          <span style="font:400 11px/1 'JetBrains Mono';color:#a1a1aa">Inventory · Marisol R.</span>
+        </div>
+      </div>
+
+      <div style="flex:1;overflow:hidden;padding:16px 18px 10px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;gap:4px;padding:4px;background:#f1f0ed;border-radius:10px">
+          <button onClick="{{ setSingle }}" style="{{ singleTabStyle }}">Single Item</button>
+          <button onClick="{{ setBatch }}" style="{{ batchTabStyle }}">Batch Entry</button>
+        </div>
+
+        <div style="height:150px;border:1.5px dashed rgba(0,0,0,.18);border-radius:12px;background-image:repeating-linear-gradient(135deg,#f4f3f0 0 8px,#eceae5 8px 16px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+          <span style="width:36px;height:36px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,.1);display:grid;place-items:center;font:500 17px/1 'Instrument Sans';color:oklch(0.52 0.19 268)">+</span>
+          <span style="font:500 12px/1 'Instrument Sans';color:#52525b">Take photo or upload</span>
+          <span style="font:400 10px/1 'JetBrains Mono';color:#9a9a94">product shot · jpg/png</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="font:500 12px/1 'Instrument Sans';color:#52525b">Product name</label>
+          <div style="height:46px;border:1.5px solid oklch(0.52 0.19 268);border-radius:9px;background:#fff;display:flex;align-items:center;padding:0 13px;font:400 15px/1 'Instrument Sans'">High-Rise Straight Jean</div>
+        </div>
+
+        <div style="display:flex;gap:10px">
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+            <label style="font:500 12px/1 'Instrument Sans';color:#52525b">Brand</label>
+            <div style="height:46px;border:1px solid rgba(0,0,0,.13);border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 13px;font:400 15px/1 'Instrument Sans'">Alta Denim<span style="color:#a1a1aa;font-size:11px">▾</span></div>
+          </div>
+          <div style="width:118px;display:flex;flex-direction:column;gap:6px">
+            <label style="font:500 12px/1 'Instrument Sans';color:#52525b">Price</label>
+            <div style="height:46px;border:1px solid rgba(0,0,0,.13);border-radius:9px;background:#fff;display:flex;align-items:center;padding:0 13px;font:600 15px/1 'JetBrains Mono'">$899</div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label style="font:500 12px/1 'Instrument Sans';color:#52525b">Size</label>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <span style="min-width:46px;height:42px;border-radius:8px;border:1px solid rgba(0,0,0,.13);display:grid;place-items:center;font:500 13px/1 'JetBrains Mono';color:#52525b;background:#fff">26</span>
+            <span style="min-width:46px;height:42px;border-radius:8px;border:1.5px solid oklch(0.52 0.19 268);display:grid;place-items:center;font:600 13px/1 'JetBrains Mono';color:#fff;background:oklch(0.52 0.19 268)">28</span>
+            <span style="min-width:46px;height:42px;border-radius:8px;border:1px solid rgba(0,0,0,.13);display:grid;place-items:center;font:500 13px/1 'JetBrains Mono';color:#52525b;background:#fff">30</span>
+            <span style="min-width:46px;height:42px;border-radius:8px;border:1px solid rgba(0,0,0,.13);display:grid;place-items:center;font:500 13px/1 'JetBrains Mono';color:#52525b;background:#fff">32</span>
+            <span style="min-width:46px;height:42px;border-radius:8px;border:1px solid rgba(0,0,0,.13);display:grid;place-items:center;font:500 13px/1 'JetBrains Mono';color:#52525b;background:#fff">34</span>
+          </div>
+        </div>
+
+        <sc-if value="{{ isBatch }}" hint-placeholder-val="{{ true }}">
+          <div style="border:1px solid oklch(0.9 0.04 268);background:oklch(0.97 0.02 268);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between">
+              <span style="font:600 13px/1 'Instrument Sans';color:oklch(0.4 0.15 268)">Quantity to add</span>
+              <span style="font:400 10px/1 'JetBrains Mono';color:oklch(0.5 0.1 268)">same model · same price</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <button onClick="{{ dec }}" style="width:52px;height:52px;border-radius:12px;border:1px solid rgba(0,0,0,.12);background:#fff;font:500 22px/1 'Instrument Sans';color:#52525b;cursor:pointer">−</button>
+              <div style="flex:1;height:52px;border-radius:12px;background:#fff;border:1px solid rgba(0,0,0,.1);display:grid;place-items:center;font:700 26px/1 'JetBrains Mono'">{{ qty }}</div>
+              <button onClick="{{ inc }}" style="width:52px;height:52px;border-radius:12px;border:1px solid rgba(0,0,0,.12);background:#fff;font:500 22px/1 'Instrument Sans';color:#52525b;cursor:pointer">+</button>
+            </div>
+            <div style="display:flex;gap:7px">
+              <button onClick="{{ set5 }}" style="flex:1;height:34px;border-radius:8px;border:1px solid rgba(0,0,0,.12);background:#fff;font:500 12px/1 'JetBrains Mono';cursor:pointer">+5</button>
+              <button onClick="{{ set10 }}" style="flex:1;height:34px;border-radius:8px;border:1px solid rgba(0,0,0,.12);background:#fff;font:500 12px/1 'JetBrains Mono';cursor:pointer">+10</button>
+              <button onClick="{{ set20 }}" style="flex:1;height:34px;border-radius:8px;border:1px solid rgba(0,0,0,.12);background:#fff;font:500 12px/1 'JetBrains Mono';cursor:pointer">+20</button>
+            </div>
+            <div style="font:400 11px/1.45 'Instrument Sans';color:oklch(0.45 0.12 268)">Color variants are not tracked — all {{ qty }} units share one model SKU.</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isSingle }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid rgba(0,0,0,.1);border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:6px;background:#fff">
+            <span style="font:600 12.5px/1 'Instrument Sans'">Unique piece</span>
+            <span style="font:400 11px/1.45 'Instrument Sans';color:#71717a">One unit, auto-generated SKU <span style="font-family:'JetBrains Mono'">ALT-JN-0413</span>.</span>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="padding:12px 18px 22px;background:#fff;border-top:1px solid rgba(0,0,0,.07);display:flex;flex-direction:column;gap:9px">
+        <button style="height:52px;border:none;border-radius:11px;background:oklch(0.52 0.19 268);color:#fff;font:600 15px/1 'Instrument Sans';cursor:pointer" style-hover="background:oklch(0.45 0.19 268)">{{ submitLabel }}</button>
+        <button style="height:40px;border:none;background:transparent;font:500 12.5px/1 'Instrument Sans';color:#71717a;cursor:pointer">Save &amp; add another</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="width:300px;display:flex;flex-direction:column;gap:12px;padding-top:8px">
+    <div style="font:600 12px/1 'Instrument Sans'">Interactive in this mockup</div>
+    <div style="font:400 12px/1.6 'Instrument Sans';color:#52525b;text-wrap:pretty">Tap <strong>Single Item</strong> / <strong>Batch Entry</strong> to switch modes — the quantity stepper and the submit label change with it. The stepper and the +5/+10/+20 presets are live.</div>
+    <div style="height:1px;background:rgba(0,0,0,.09);margin:4px 0"></div>
+    <div style="font:400 12px/1.6 'Instrument Sans';color:#52525b;text-wrap:pretty">On desktop the same form widens to two columns with the image dropzone on the left — same fields, no separate screen.</div>
+  </div>
+</div>
+</section>
+
+<section style="padding:24px 44px 34px;border-bottom:1px solid rgba(0,0,0,.07)">
+<div style="display:flex;align-items:baseline;gap:10px;margin:0 0 18px">
+<span style="font:600 10px/1 'JetBrains Mono';padding:4px 7px;background:#1c1c1a;color:#fff;border-radius:4px">S3</span>
+<span style="font:600 13px/1.2 'Instrument Sans'">Active Layaways Manager — responsive</span>
+<span style="font:400 12px/1.2 'Instrument Sans';color:#71717a">Kanban by health on desktop, stacked cards on mobile</span>
+</div>
+
+<div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap">
+<div style="width:1180px;background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:12px;box-shadow:0 12px 32px -18px rgba(0,0,0,.35);overflow:hidden">
+  <div style="padding:18px 22px;border-bottom:1px solid rgba(0,0,0,.07);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font:700 17px/1 'Instrument Sans'">Apartados</span>
+      <span style="font:400 11.5px/1 'Instrument Sans';color:#71717a">18 active · $12,480 reserved · 3 expiring in 48 h</span>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <span style="font:500 11.5px/1 'Instrument Sans';padding:8px 12px;border-radius:8px;border:1px solid rgba(0,0,0,.12);color:#52525b">Search customer</span>
+      <span style="font:500 11.5px/1 'Instrument Sans';padding:8px 12px;border-radius:8px;background:#1c1c1a;color:#fff">Export</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:#faf9f7">
+    <div style="padding:16px 18px;border-right:1px solid rgba(0,0,0,.07);display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;border-radius:50%;background:oklch(0.6 0.14 150)"></span>
+        <span style="font:600 12.5px/1 'Instrument Sans'">Healthy</span>
+        <span style="font:500 10px/1 'JetBrains Mono';color:#71717a;background:#f1f0ed;padding:3px 6px;border-radius:4px">11</span>
+      </div>
+      <sc-for list="{{ healthy }}" as="l" hint-placeholder-count="2">
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-left:3px solid oklch(0.6 0.14 150);border-radius:9px;padding:13px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+            <span style="font:600 13.5px/1.2 'Instrument Sans'">{{ l.customer }}</span>
+            <span style="font:600 10px/1 'JetBrains Mono';color:oklch(0.45 0.13 150);background:oklch(0.95 0.05 150);padding:4px 6px;border-radius:4px">{{ l.left }}</span>
+          </div>
+          <div style="font:400 11.5px/1.35 'Instrument Sans';color:#52525b">{{ l.item }}</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div style="height:6px;border-radius:3px;background:#f1f0ed;overflow:hidden"><div style="height:100%;border-radius:3px;background:oklch(0.6 0.14 150);width:{{ l.pct }}"></div></div>
+            <div style="display:flex;justify-content:space-between;font:500 10.5px/1 'JetBrains Mono';color:#71717a"><span>Paid {{ l.paid }}</span><span>of {{ l.price }}</span></div>
+          </div>
+          <div style="display:flex;gap:7px">
+            <button style="flex:1;height:32px;border-radius:7px;border:none;background:oklch(0.52 0.19 268);color:#fff;font:600 11.5px/1 'Instrument Sans';cursor:pointer">Register 2nd payment</button>
+            <button style="width:32px;height:32px;border-radius:7px;border:1px solid rgba(0,0,0,.12);background:#fff;font:600 12px/1 'Instrument Sans';color:#71717a;cursor:pointer">⋯</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="padding:16px 18px;border-right:1px solid rgba(0,0,0,.07);display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;border-radius:50%;background:oklch(0.75 0.15 82)"></span>
+        <span style="font:600 12.5px/1 'Instrument Sans'">Expiring soon</span>
+        <span style="font:500 10px/1 'JetBrains Mono';color:#71717a;background:#f1f0ed;padding:3px 6px;border-radius:4px">4</span>
+      </div>
+      <sc-for list="{{ expiring }}" as="l" hint-placeholder-count="2">
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-left:3px solid oklch(0.75 0.15 82);border-radius:9px;padding:13px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+            <span style="font:600 13.5px/1.2 'Instrument Sans'">{{ l.customer }}</span>
+            <span style="font:600 10px/1 'JetBrains Mono';color:oklch(0.45 0.1 70);background:oklch(0.96 0.05 85);padding:4px 6px;border-radius:4px">{{ l.left }}</span>
+          </div>
+          <div style="font:400 11.5px/1.35 'Instrument Sans';color:#52525b">{{ l.item }}</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div style="height:6px;border-radius:3px;background:#f1f0ed;overflow:hidden"><div style="height:100%;border-radius:3px;background:oklch(0.75 0.15 82);width:{{ l.pct }}"></div></div>
+            <div style="display:flex;justify-content:space-between;font:500 10.5px/1 'JetBrains Mono';color:#71717a"><span>Paid {{ l.paid }}</span><span>of {{ l.price }}</span></div>
+          </div>
+          <div style="font:500 10.5px/1.3 'Instrument Sans';color:oklch(0.5 0.1 70)">Reminder sent · {{ l.due }}</div>
+          <div style="display:flex;gap:7px">
+            <button style="flex:1;height:32px;border-radius:7px;border:none;background:oklch(0.52 0.19 268);color:#fff;font:600 11.5px/1 'Instrument Sans';cursor:pointer">Register 2nd payment</button>
+            <button style="width:32px;height:32px;border-radius:7px;border:1px solid rgba(0,0,0,.12);background:#fff;font:600 12px/1 'Instrument Sans';color:#71717a;cursor:pointer">⋯</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;background:oklch(0.98 0.012 25)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;border-radius:50%;background:oklch(0.58 0.19 25)"></span>
+        <span style="font:600 12.5px/1 'Instrument Sans'">Expired · action required</span>
+        <span style="font:500 10px/1 'JetBrains Mono';color:#fff;background:oklch(0.58 0.19 25);padding:3px 6px;border-radius:4px">3</span>
+      </div>
+      <sc-for list="{{ expired }}" as="l" hint-placeholder-count="2">
+        <div style="background:#fff;border:1px solid oklch(0.88 0.06 25);border-left:3px solid oklch(0.58 0.19 25);border-radius:9px;padding:13px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+            <span style="font:600 13.5px/1.2 'Instrument Sans'">{{ l.customer }}</span>
+            <span style="font:600 10px/1 'JetBrains Mono';color:#fff;background:oklch(0.58 0.19 25);padding:4px 6px;border-radius:4px">{{ l.left }}</span>
+          </div>
+          <div style="font:400 11.5px/1.35 'Instrument Sans';color:#52525b">{{ l.item }}</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div style="height:6px;border-radius:3px;background:#f1f0ed;overflow:hidden"><div style="height:100%;border-radius:3px;background:oklch(0.58 0.19 25);width:{{ l.pct }}"></div></div>
+            <div style="display:flex;justify-content:space-between;font:500 10.5px/1 'JetBrains Mono';color:#71717a"><span>Paid {{ l.paid }}</span><span>of {{ l.price }}</span></div>
+          </div>
+          <div style="font:500 10.5px/1.35 'Instrument Sans';color:oklch(0.5 0.19 25)">Due {{ l.due }} · abono to be penalized</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <button style="height:32px;border-radius:7px;border:none;background:oklch(0.55 0.19 25);color:#fff;font:600 11.5px/1 'Instrument Sans';cursor:pointer">Penalize &amp; return to stock</button>
+            <button style="height:32px;border-radius:7px;border:1px solid rgba(0,0,0,.13);background:#fff;font:600 11.5px/1 'Instrument Sans';color:#52525b;cursor:pointer">Register 2nd payment anyway</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+
+<div style="width:340px;flex:none;background:#1c1c1a;border-radius:42px;padding:10px;box-shadow:0 18px 40px -20px rgba(0,0,0,.5)">
+  <div style="background:#faf9f7;border-radius:33px;overflow:hidden;height:700px;display:flex;flex-direction:column">
+    <div style="padding:16px 16px 12px;background:#fff;border-bottom:1px solid rgba(0,0,0,.07);display:flex;flex-direction:column;gap:10px">
+      <span style="font:700 16px/1 'Instrument Sans'">Apartados</span>
+      <div style="display:flex;gap:6px">
+        <span style="font:600 10.5px/1 'JetBrains Mono';padding:6px 9px;border-radius:999px;background:#1c1c1a;color:#fff">ALL 18</span>
+        <span style="font:600 10.5px/1 'JetBrains Mono';padding:6px 9px;border-radius:999px;border:1px solid oklch(0.85 0.09 82);color:oklch(0.45 0.1 70)">SOON 4</span>
+        <span style="font:600 10.5px/1 'JetBrains Mono';padding:6px 9px;border-radius:999px;background:oklch(0.58 0.19 25);color:#fff">EXPIRED 3</span>
+      </div>
+    </div>
+    <div style="flex:1;overflow:hidden;padding:12px;display:flex;flex-direction:column;gap:10px">
+      <sc-for list="{{ mobileList }}" as="l" hint-placeholder-count="4">
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:9px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:8px;height:8px;border-radius:50%;background:{{ l.dot }}"></span>
+            <span style="font:600 13.5px/1 'Instrument Sans'">{{ l.customer }}</span>
+            <span style="margin-left:auto;font:600 10px/1 'JetBrains Mono';color:#52525b">{{ l.left }}</span>
+          </div>
+          <div style="font:400 11.5px/1.3 'Instrument Sans';color:#52525b">{{ l.item }}</div>
+          <div style="display:flex;justify-content:space-between;font:600 11px/1 'JetBrains Mono'"><span>{{ l.paid }} paid</span><span style="color:#71717a">{{ l.price }}</span></div>
+          <div style="height:5px;border-radius:3px;background:#f1f0ed;overflow:hidden"><div style="height:100%;border-radius:3px;width:{{ l.pct }};background:{{ l.dot }}"></div></div>
+          <button style="height:38px;border-radius:8px;border:none;background:{{ l.btnBg }};color:#fff;font:600 12px/1 'Instrument Sans';cursor:pointer">{{ l.btn }}</button>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</div>
+</section>
+
+<section style="padding:24px 44px 60px">
+<div style="display:flex;align-items:baseline;gap:10px;margin:0 0 18px">
+<span style="font:600 10px/1 'JetBrains Mono';padding:4px 7px;background:#1c1c1a;color:#fff;border-radius:4px">S4</span>
+<span style="font:600 13px/1.2 'Instrument Sans'">Admin Analytics &amp; Commissions — superuser only</span>
+<span style="font:400 12px/1.2 'Instrument Sans';color:#71717a">1440 wide · metrics, vendor commissions, inventory quick actions</span>
+</div>
+
+<div style="width:1440px;background:#faf9f7;border:1px solid rgba(0,0,0,.09);border-radius:12px;box-shadow:0 12px 32px -18px rgba(0,0,0,.35);overflow:hidden">
+  <div style="padding:20px 26px;background:#fff;border-bottom:1px solid rgba(0,0,0,.07);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;gap:9px">
+        <span style="font:700 19px/1 'Instrument Sans'">Analytics</span>
+        <span style="font:600 9px/1 'JetBrains Mono';color:#fff;background:#1c1c1a;padding:4px 6px;border-radius:4px">ADMIN</span>
+      </div>
+      <span style="font:400 11.5px/1 'Instrument Sans';color:#71717a">Aug 1 – Aug 19, 2026 · store: Centro</span>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px;padding:4px;background:#f1f0ed;border-radius:9px">
+      <span style="font:600 11.5px/1 'Instrument Sans';padding:8px 12px;border-radius:6px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08)">Month</span>
+      <span style="font:500 11.5px/1 'Instrument Sans';padding:8px 12px;border-radius:6px;color:#71717a">Quarter</span>
+      <span style="font:500 11.5px/1 'Instrument Sans';padding:8px 12px;border-radius:6px;color:#71717a">Year</span>
+    </div>
+  </div>
+
+  <div style="padding:22px 26px;display:flex;flex-direction:column;gap:20px">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:11px;padding:17px;display:flex;flex-direction:column;gap:9px">
+        <span style="font:500 11px/1 'JetBrains Mono';color:#71717a;letter-spacing:.03em">TOTAL SALES</span>
+        <span style="font:700 30px/1 'JetBrains Mono'">$248,910</span>
+        <span style="font:500 11px/1 'Instrument Sans';color:oklch(0.52 0.14 150)">▲ 12.4% vs last month</span>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:11px;padding:17px;display:flex;flex-direction:column;gap:9px">
+        <span style="font:500 11px/1 'JetBrains Mono';color:#71717a;letter-spacing:.03em">TICKETS</span>
+        <span style="font:700 30px/1 'JetBrains Mono'">614</span>
+        <span style="font:500 11px/1 'Instrument Sans';color:#71717a">Avg $405 · 1.8 items</span>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:11px;padding:17px;display:flex;flex-direction:column;gap:9px">
+        <span style="font:500 11px/1 'JetBrains Mono';color:#71717a;letter-spacing:.03em">COMMISSIONS DUE</span>
+        <span style="font:700 30px/1 'JetBrains Mono';color:oklch(0.52 0.19 268)">$14,934</span>
+        <span style="font:500 11px/1 'Instrument Sans';color:#71717a">6% blended rate · 4 vendors</span>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:11px;padding:17px;display:flex;flex-direction:column;gap:9px">
+        <span style="font:500 11px/1 'JetBrains Mono';color:#71717a;letter-spacing:.03em">LAYAWAYS</span>
+        <span style="font:700 30px/1 'JetBrains Mono'">18</span>
+        <span style="font:500 11px/1 'Instrument Sans';color:oklch(0.55 0.19 25)">3 expired · $1,240 penalized</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start">
+      <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:11px;overflow:hidden">
+        <div style="padding:15px 18px;border-bottom:1px solid rgba(0,0,0,.07);display:flex;align-items:baseline;justify-content:space-between">
+          <span style="font:600 14px/1 'Instrument Sans'">Sales by vendor</span>
+          <span style="font:500 11px/1 'Instrument Sans';color:oklch(0.52 0.19 268)">Adjust commission rates</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1.5fr .7fr .8fr .6fr .9fr;padding:10px 18px;background:#faf9f7;border-bottom:1px solid rgba(0,0,0,.07);font:500 10px/1 'JetBrains Mono';color:#71717a;letter-spacing:.04em">
+          <span>VENDOR</span><span style="text-align:right">TICKETS</span><span style="text-align:right">REVENUE</span><span style="text-align:right">RATE</span><span style="text-align:right">COMMISSION</span>
+        </div>
+        <sc-for list="{{ vendors }}" as="v" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:1.5fr .7fr .8fr .6fr .9fr;align-items:center;padding:13px 18px;border-bottom:1px solid rgba(0,0,0,.055)" style-hover="background:#faf9f7">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:28px;height:28px;border-radius:50%;background:#f1f0ed;display:grid;place-items:center;font:600 10.5px/1 'Instrument Sans';color:#52525b">{{ v.initials }}</span>
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <span style="font:600 12.5px/1 'Instrument Sans'">{{ v.name }}</span>
+                <span style="font:400 10px/1 'JetBrains Mono';color:#a1a1aa">{{ v.role }}</span>
+              </div>
+            </div>
+            <span style="text-align:right;font:500 12px/1 'JetBrains Mono';color:#52525b">{{ v.tickets }}</span>
+            <span style="text-align:right;font:600 12.5px/1 'JetBrains Mono'">{{ v.revenue }}</span>
+            <span style="text-align:right;font:500 12px/1 'JetBrains Mono';color:#52525b">{{ v.rate }}</span>
+            <span style="text-align:right;font:700 12.5px/1 'JetBrains Mono';color:oklch(0.52 0.19 268)">{{ v.commission }}</span>
+          </div>
+        </sc-for>
+        <div style="display:grid;grid-template-columns:1.5fr .7fr .8fr .6fr .9fr;padding:13px 18px;background:#faf9f7;font:700 12.5px/1 'JetBrains Mono'">
+          <span style="font-family:'Instrument Sans'">Total</span><span style="text-align:right">614</span><span style="text-align:right">$248,910</span><span style="text-align:right;color:#71717a">—</span><span style="text-align:right;color:oklch(0.52 0.19 268)">$14,934</span>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:11px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font:600 14px/1 'Instrument Sans'">Revenue · last 7 days</span>
+        <div style="display:flex;align-items:flex-end;gap:10px;height:150px">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:58%;border-radius:5px 5px 0 0;background:#e7e5e0"></div><span style="font:500 10px/1 'JetBrains Mono';color:#a1a1aa">W</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:72%;border-radius:5px 5px 0 0;background:#e7e5e0"></div><span style="font:500 10px/1 'JetBrains Mono';color:#a1a1aa">T</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:46%;border-radius:5px 5px 0 0;background:#e7e5e0"></div><span style="font:500 10px/1 'JetBrains Mono';color:#a1a1aa">F</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:88%;border-radius:5px 5px 0 0;background:oklch(0.52 0.19 268)"></div><span style="font:600 10px/1 'JetBrains Mono';color:#1c1c1a">S</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:100%;border-radius:5px 5px 0 0;background:oklch(0.52 0.19 268)"></div><span style="font:600 10px/1 'JetBrains Mono';color:#1c1c1a">S</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:39%;border-radius:5px 5px 0 0;background:#e7e5e0"></div><span style="font:500 10px/1 'JetBrains Mono';color:#a1a1aa">M</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px"><div style="width:100%;height:64%;border-radius:5px 5px 0 0;background:#e7e5e0"></div><span style="font:500 10px/1 'JetBrains Mono';color:#a1a1aa">T</span></div>
+        </div>
+        <div style="height:1px;background:rgba(0,0,0,.07)"></div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <span style="font:600 12.5px/1 'Instrument Sans'">Top models</span>
+          <div style="display:flex;justify-content:space-between;font:400 11.5px/1 'Instrument Sans';color:#52525b"><span>High-Rise Straight Jean</span><span style="font-family:'JetBrains Mono'">64</span></div>
+          <div style="display:flex;justify-content:space-between;font:400 11.5px/1 'Instrument Sans';color:#52525b"><span>Oversized Poplin Shirt</span><span style="font-family:'JetBrains Mono'">51</span></div>
+          <div style="display:flex;justify-content:space-between;font:400 11.5px/1 'Instrument Sans';color:#52525b"><span>Cropped Denim Jacket</span><span style="font-family:'JetBrains Mono'">38</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:11px;overflow:hidden">
+      <div style="padding:15px 18px;border-bottom:1px solid rgba(0,0,0,.07);display:flex;align-items:center;gap:12px">
+        <span style="font:600 14px/1 'Instrument Sans'">Inventory quick actions</span>
+        <span style="font:400 11px/1 'JetBrains Mono';color:#a1a1aa">412 models · 1,038 units</span>
+        <span style="margin-left:auto;font:600 11.5px/1 'Instrument Sans';padding:8px 12px;border-radius:8px;background:oklch(0.52 0.19 268);color:#fff">+ New product</span>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr .9fr .7fr .7fr .8fr 150px;padding:10px 18px;background:#faf9f7;border-bottom:1px solid rgba(0,0,0,.07);font:500 10px/1 'JetBrains Mono';color:#71717a;letter-spacing:.04em">
+        <span>PRODUCT</span><span>SKU</span><span style="text-align:right">PRICE</span><span style="text-align:right">STOCK</span><span style="text-align:right">SOLD</span><span style="text-align:right">ACTIONS</span>
+      </div>
+      <sc-for list="{{ inventory }}" as="p" hint-placeholder-count="4">
+        <div style="display:grid;grid-template-columns:2fr .9fr .7fr .7fr .8fr 150px;align-items:center;padding:11px 18px;border-bottom:1px solid rgba(0,0,0,.055)" style-hover="background:#faf9f7">
+          <div style="display:flex;align-items:center;gap:11px">
+            <span style="width:32px;height:38px;border-radius:5px;background-image:repeating-linear-gradient(135deg,#f1f0ed 0 6px,#e7e5e0 6px 12px)"></span>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <span style="font:600 12.5px/1 'Instrument Sans'">{{ p.name }}</span>
+              <span style="font:400 10px/1 'JetBrains Mono';color:#a1a1aa">{{ p.brand }} · {{ p.sizeRange }}</span>
+            </div>
+          </div>
+          <span style="font:400 11px/1 'JetBrains Mono';color:#52525b">{{ p.sku }}</span>
+          <span style="text-align:right;font:600 12px/1 'JetBrains Mono'">{{ p.price }}</span>
+          <span style="text-align:right;font:500 12px/1 'JetBrains Mono';color:#52525b">{{ p.stock }}</span>
+          <span style="text-align:right;font:500 12px/1 'JetBrains Mono';color:#52525b">{{ p.sold }}</span>
+          <div style="display:flex;gap:7px;justify-content:flex-end">
+            <button style="height:30px;padding:0 12px;border-radius:7px;border:1px solid rgba(0,0,0,.13);background:#fff;font:500 11.5px/1 'Instrument Sans';color:#52525b;cursor:pointer">Edit</button>
+            <button style="height:30px;padding:0 12px;border-radius:7px;border:1px solid oklch(0.88 0.07 25);background:#fff;font:500 11.5px/1 'Instrument Sans';color:oklch(0.53 0.19 25);cursor:pointer">Delete</button>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1540,&quot;height&quot;:1100}}">
+class Component extends DCLogic {
+  state = { mode: 'layaway', entry: 'batch', qty: 10 };
+
+  tab(active) {
+    return {
+      flex: 1, height: 34, border: 'none', borderRadius: 7, cursor: 'pointer',
+      font: "600 12px/1 'Instrument Sans'",
+      background: active ? '#fff' : 'transparent',
+      color: active ? '#1c1c1a' : '#71717a',
+      boxShadow: active ? '0 1px 2px rgba(0,0,0,.1)' : 'none'
+    };
+  }
+  mtab(active) {
+    return {
+      flex: 1, height: 40, border: 'none', borderRadius: 8, cursor: 'pointer',
+      font: "600 13px/1 'Instrument Sans'",
+      background: active ? '#fff' : 'transparent',
+      color: active ? '#1c1c1a' : '#71717a',
+      boxShadow: active ? '0 1px 3px rgba(0,0,0,.12)' : 'none'
+    };
+  }
+
+  renderVals() {
+    const lay = this.state.mode === 'layaway';
+    const batch = this.state.entry === 'batch';
+    const q = this.state.qty;
+    return {
+      products: [
+        { brand: 'ALTA DENIM', name: 'High-Rise Straight Jean', price: '$899', stockLabel: '14 u', sizes: ['26', '28', '30', '32'] },
+        { brand: 'NORTE', name: 'Oversized Poplin Shirt', price: '$549', stockLabel: '22 u', sizes: ['S', 'M', 'L'] },
+        { brand: 'ALTA DENIM', name: 'Cropped Denim Jacket', price: '$1,249', stockLabel: '6 u', sizes: ['S', 'M', 'L'] },
+        { brand: 'LUMA', name: 'Ribbed Knit Tank', price: '$329', stockLabel: '31 u', sizes: ['XS', 'S', 'M'] },
+        { brand: 'CASA VERDE', name: 'Linen Wide Trouser', price: '$789', stockLabel: '9 u', sizes: ['28', '30', '32'] },
+        { brand: 'NORTE', name: 'Wool Blend Overcoat', price: '$2,190', stockLabel: '3 u', sizes: ['M', 'L'] },
+        { brand: 'LUMA', name: 'Midi Slip Dress', price: '$979', stockLabel: '11 u', sizes: ['S', 'M', 'L'] },
+        { brand: 'ATLAS', name: 'Leather Belt 35mm', price: '$389', stockLabel: '18 u', sizes: ['80', '85', '90'] }
+      ],
+      cart: [
+        { name: 'High-Rise Straight Jean', meta: 'ALT-JN-0413 · size 28', qty: 1, total: '$899.00' },
+        { name: 'Oversized Poplin Shirt', meta: 'NRT-SH-0119 · size M', qty: 2, total: '$1,098.00' },
+        { name: 'Leather Belt 35mm', meta: 'ATL-BL-0077 · 85', qty: 1, total: '$389.00' }
+      ],
+      isLayaway: lay,
+      directTabStyle: this.tab(!lay),
+      layawayTabStyle: this.tab(lay),
+      setDirect: () => this.setState({ mode: 'direct' }),
+      setLayaway: () => this.setState({ mode: 'layaway' }),
+      abono: '1,300.00',
+      remaining: '1,947.00',
+      payLabel: lay ? 'Abono now' : 'Total due',
+      payNow: lay ? '1,300.00' : '3,247.00',
+      ctaLabel: lay ? 'Reserve & Print Receipt' : 'Complete & Print Ticket',
+
+      isBatch: batch,
+      isSingle: !batch,
+      qty: q,
+      singleTabStyle: this.mtab(!batch),
+      batchTabStyle: this.mtab(batch),
+      setSingle: () => this.setState({ entry: 'single' }),
+      setBatch: () => this.setState({ entry: 'batch' }),
+      inc: () => this.setState(s => ({ qty: s.qty + 1 })),
+      dec: () => this.setState(s => ({ qty: Math.max(1, s.qty - 1) })),
+      set5: () => this.setState(s => ({ qty: s.qty + 5 })),
+      set10: () => this.setState(s => ({ qty: s.qty + 10 })),
+      set20: () => this.setState(s => ({ qty: s.qty + 20 })),
+      submitLabel: batch ? 'Add ' + q + ' units to inventory' : 'Add product to inventory',
+
+      healthy: [
+        { customer: 'Ana Lucía Ferrer', item: 'Wool Blend Overcoat · size M', left: '13d 4h', paid: '$900', price: '$2,190', pct: '41%' },
+        { customer: 'Rubén Salas', item: 'Cropped Denim Jacket · L', left: '11d 9h', paid: '$600', price: '$1,249', pct: '48%' },
+        { customer: 'Paola Mendez', item: 'Midi Slip Dress · S', left: '9d 2h', paid: '$500', price: '$979', pct: '51%' }
+      ],
+      expiring: [
+        { customer: 'Diego Ortiz', item: 'Linen Wide Trouser · 32', left: '1d 6h', paid: '$300', price: '$789', pct: '38%', due: 'due Aug 20' },
+        { customer: 'Carmen Ruiz', item: 'High-Rise Straight Jean · 30', left: '2d 1h', paid: '$400', price: '$899', pct: '44%', due: 'due Aug 21' }
+      ],
+      expired: [
+        { customer: 'Iván Barrera', item: 'Wool Blend Overcoat · L', left: 'OVERDUE 2d', paid: '$700', price: '$2,190', pct: '32%', due: 'Aug 17' },
+        { customer: 'Sofía Lara', item: 'Ribbed Knit Tank ×2 · M', left: 'OVERDUE 4d', paid: '$150', price: '$658', pct: '23%', due: 'Aug 15' }
+      ],
+      mobileList: [
+        { customer: 'Iván Barrera', item: 'Wool Blend Overcoat · L', left: 'OVERDUE 2d', paid: '$700', price: '$2,190', pct: '32%', dot: 'oklch(0.58 0.19 25)', btn: 'Penalize & return to stock', btnBg: 'oklch(0.55 0.19 25)' },
+        { customer: 'Diego Ortiz', item: 'Linen Wide Trouser · 32', left: '1d 6h', paid: '$300', price: '$789', pct: '38%', dot: 'oklch(0.75 0.15 82)', btn: 'Register 2nd payment', btnBg: 'oklch(0.52 0.19 268)' },
+        { customer: 'Carmen Ruiz', item: 'High-Rise Jean · 30', left: '2d 1h', paid: '$400', price: '$899', pct: '44%', dot: 'oklch(0.75 0.15 82)', btn: 'Register 2nd payment', btnBg: 'oklch(0.52 0.19 268)' },
+        { customer: 'Ana Lucía Ferrer', item: 'Wool Blend Overcoat · M', left: '13d 4h', paid: '$900', price: '$2,190', pct: '41%', dot: 'oklch(0.6 0.14 150)', btn: 'Register 2nd payment', btnBg: 'oklch(0.52 0.19 268)' }
+      ],
+      vendors: [
+        { initials: 'MR', name: 'Marisol Rivas', role: 'vendor · full time', tickets: '214', revenue: '$96,420', rate: '6%', commission: '$5,785' },
+        { initials: 'JT', name: 'Julio Tenorio', role: 'vendor · full time', tickets: '178', revenue: '$71,340', rate: '6%', commission: '$4,280' },
+        { initials: 'NC', name: 'Nadia Cruz', role: 'vendor · part time', tickets: '132', revenue: '$52,880', rate: '5%', commission: '$2,644' },
+        { initials: 'AV', name: 'Alonso Vega', role: 'vendor · part time', tickets: '90', revenue: '$28,270', rate: '8%', commission: '$2,225' }
+      ],
+      inventory: [
+        { name: 'High-Rise Straight Jean', brand: 'Alta Denim', sizeRange: '26–34', sku: 'ALT-JN-0413', price: '$899', stock: '14', sold: '64' },
+        { name: 'Oversized Poplin Shirt', brand: 'Norte', sizeRange: 'S–L', sku: 'NRT-SH-0119', price: '$549', stock: '22', sold: '51' },
+        { name: 'Cropped Denim Jacket', brand: 'Alta Denim', sizeRange: 'S–L', sku: 'ALT-JK-0088', price: '$1,249', stock: '6', sold: '38' },
+        { name: 'Wool Blend Overcoat', brand: 'Norte', sizeRange: 'M–L', sku: 'NRT-OC-0021', price: '$2,190', stock: '3', sold: '12' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

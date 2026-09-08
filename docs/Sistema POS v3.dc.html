@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"><style>*{box-sizing:border-box}body{margin:0;font-family:'Instrument Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.hilo{--canvas:#eceae5;--surface:#ffffff;--surface2:#faf9f7;--border:rgba(0,0,0,.09);--border2:rgba(0,0,0,.14);--text:#1c1c1a;--muted:#6b6b72;--faint:#a1a1aa;--chip:#f1f0ed;--rail:#1c1c1a;--primary:oklch(0.52 0.19 268);--pfg:#fff;--psoft:oklch(0.96 0.02 268);--psoftb:oklch(0.9 0.045 268);--ptext:oklch(0.42 0.14 268);--ok:oklch(0.58 0.14 150);--oksoft:oklch(0.95 0.05 150);--oktext:oklch(0.43 0.13 150);--warn:oklch(0.75 0.15 82);--warnsoft:oklch(0.96 0.05 85);--warntext:oklch(0.45 0.1 70);--bad:oklch(0.56 0.19 25);--badsoft:oklch(0.96 0.03 25);--badtext:oklch(0.5 0.19 25);--shadow:0 12px 32px -18px rgba(0,0,0,.35)}</style></helmet>
+
+<div class="hilo" ref="{{ raiz }}" style="min-height:100vh;background:var(--canvas);color:var(--text);padding:22px;display:flex;flex-direction:column;gap:14px;align-items:center">
+
+<div style="{{ barraStyle }}">
+  <div style="display:flex;flex-direction:column;gap:3px">
+    <span style="font:700 16.5px/1 'Instrument Sans'">Hilo POS · prototipo interactivo</span>
+    <span style="font:400 13.5px/1.3 'Instrument Sans';color:var(--muted)">{{ sesionLabel }}</span>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <div style="display:flex;gap:4px;padding:4px;background:var(--chip);border-radius:9px">
+      <button onClick="{{ verPc }}" style="{{ tabPc }}">PC</button>
+      <button onClick="{{ verMovil }}" style="{{ tabMovil }}">Móvil</button>
+    </div>
+    <sc-if value="{{ sesionActiva }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ salir }}" style="height:34px;padding:0 13px;border-radius:9px;border:1px solid var(--border2);background:var(--surface);color:var(--badtext);font:600 14px/1 'Instrument Sans';cursor:pointer">Cerrar sesión</button>
+    </sc-if>
+  </div>
+</div>
+
+<div style="{{ marcoStyle }}">
+<div style="{{ shellStyle }}">
+
+  <sc-if value="{{ enLogin }}" hint-placeholder-val="{{ true }}">
+  <div style="{{ loginWrap }}">
+    <div style="{{ loginCard }}">
+      <div style="display:flex;align-items:center;gap:11px">
+        <span style="width:40px;height:40px;border-radius:11px;background:var(--primary);color:var(--pfg);display:grid;place-items:center;font:700 18.5px/1 'Instrument Sans'">H</span>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <span style="font:700 20.5px/1 'Instrument Sans'">Iniciar sesión</span>
+          <span style="font:400 13.5px/1 'JetBrains Mono';color:var(--muted)">hilo.local · sucursal Centro</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font:500 13.5px/1 'Instrument Sans';color:var(--muted)">Selecciona tu usuario</span>
+        <sc-for list="{{ usuariosLogin }}" as="u" hint-placeholder-count="3">
+          <button onClick="{{ u.onClick }}" style="{{ u.style }}">
+            <span style="width:32px;height:32px;border-radius:50%;background:var(--chip);display:grid;place-items:center;font:600 13px/1 'Instrument Sans';color:var(--muted)">{{ u.ini }}</span>
+            <span style="display:flex;flex-direction:column;gap:3px;text-align:left">
+              <span style="font:600 15px/1 'Instrument Sans'">{{ u.nombre }}</span>
+              <span style="font:400 12.5px/1 'JetBrains Mono';color:var(--faint)">{{ u.rolLabel }} · {{ u.usuario }}</span>
+            </span>
+            <span style="margin-left:auto;font:600 11.5px/1 'JetBrains Mono';color:var(--ptext)">{{ u.marca }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font:500 13.5px/1 'Instrument Sans';color:var(--muted)">NIP de acceso (4 dígitos · demo 1234)</span>
+        <div style="display:flex;gap:8px">
+          <sc-for list="{{ nipCasillas }}" as="c" hint-placeholder-count="4">
+            <div style="{{ c.style }}">{{ c.char }}</div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <sc-for list="{{ teclas }}" as="k" hint-placeholder-count="12">
+            <button onClick="{{ k.onClick }}" style="{{ k.style }}">{{ k.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <sc-if value="{{ loginError }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:10px 12px;border-radius:8px;background:var(--badsoft);border:1px solid var(--bad);font:500 13.5px/1.4 'Instrument Sans';color:var(--badtext)">{{ loginErrorMsg }}</div>
+      </sc-if>
+      <button onClick="{{ entrar }}" style="{{ entrarStyle }}">Entrar</button>
+      <button onClick="{{ irRegistro }}" style="height:38px;border:none;background:transparent;font:600 14px/1 'Instrument Sans';color:var(--ptext);cursor:pointer">Registrar nuevo personal</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ sesionActiva }}" hint-placeholder-val="{{ false }}">
+  <div style="{{ appStyle }}">
+
+    <sc-if value="{{ esPc }}" hint-placeholder-val="{{ true }}">
+    <div style="width:80px;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:6px;flex:none">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--primary);color:var(--pfg);display:grid;place-items:center;font:700 17.5px/1 'Instrument Sans';margin-bottom:12px">H</div>
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5">
+        <button onClick="{{ n.onClick }}" style="{{ n.style }}">{{ n.label }}</button>
+      </sc-for>
+      <div style="flex:1"></div>
+      <button onClick="{{ irCambio }}" style="width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.18);color:#fff;font:600 13px/1 'Instrument Sans';cursor:pointer">{{ iniciales }}</button>
+    </div>
+    </sc-if>
+
+    <div style="flex:1;min-width:0;min-height:0;background:var(--surface2);display:flex;flex-direction:column">
+      <div style="flex:1;min-height:0;min-width:0;position:relative;overflow:hidden">
+
+      <sc-if value="{{ enPos }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+        <div style="padding:14px 18px 12px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:11px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <input value="{{ busqueda }}" onChange="{{ onBuscar }}" placeholder="Buscar nombre, marca o SKU…" style="flex:1;min-width:0;height:40px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);padding:0 12px;font:400 16.5px/1 'Instrument Sans';outline:none" />
+            <sc-if value="{{ esPc }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border:1px solid var(--border);border-radius:999px;flex:none">
+                <span style="width:26px;height:26px;border-radius:50%;background:var(--primary);color:var(--pfg);display:grid;place-items:center;font:600 11.5px/1 'Instrument Sans'">{{ iniciales }}</span>
+                <span style="font:500 14px/1 'Instrument Sans'">{{ usuario }}</span>
+                <span style="font:600 10.5px/1 'JetBrains Mono';color:var(--ptext);background:var(--psoft);padding:3px 5px;border-radius:4px">{{ rolLabel }}</span>
+              </div>
+            </sc-if>
+          </div>
+          <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:2px">
+            <sc-for list="{{ categorias }}" as="c" hint-placeholder-count="5">
+              <button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+            </sc-for>
+          </div>
+          <sc-if value="{{ esMovil }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:4px;padding:4px;background:var(--chip);border-radius:9px">
+              <button onClick="{{ panelCatalogo }}" style="{{ tabCatalogo }}">Catálogo</button>
+              <button onClick="{{ panelTicket }}" style="{{ tabTicket }}">Ticket · {{ piezas }}</button>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="{{ posBodyStyle }}">
+          <sc-if value="{{ verCatalogo }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1;min-width:0;min-height:0;overflow-y:auto;padding:16px 18px">
+              <div style="{{ gridStyle }}">
+                <sc-for list="{{ productos }}" as="p" hint-placeholder-count="6">
+                  <button onClick="{{ p.onClick }}" style="{{ p.style }}">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                      <span style="font:400 11.5px/1 'JetBrains Mono';color:var(--faint)">{{ p.sku }}</span>
+                      <span style="{{ p.stockStyle }}">{{ p.stockLabel }}</span>
+                    </div>
+                    <div style="font:600 16.5px/1.25 'Instrument Sans';text-align:left;text-wrap:pretty">{{ p.name }}</div>
+                    <div style="font:400 13px/1 'Instrument Sans';color:var(--muted);text-align:left">{{ p.brand }} · tallas {{ p.tallas }}</div>
+                    <div style="margin-top:auto;display:flex;align-items:baseline;justify-content:space-between">
+                      <span style="font:700 18.5px/1 'JetBrains Mono'">{{ p.precio }}</span>
+                      <span style="font:600 11.5px/1 'JetBrains Mono';color:var(--ptext)">+ agregar</span>
+                    </div>
+                  </button>
+                </sc-for>
+              </div>
+              <sc-if value="{{ sinResultados }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:40px;text-align:center;font:400 15px/1.5 'Instrument Sans';color:var(--muted)">Sin resultados para esa búsqueda.</div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ verTicket }}" hint-placeholder-val="{{ true }}">
+          <div style="{{ ticketPanelStyle }}">
+            <div style="padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:11px">
+              <div style="display:flex;align-items:baseline;justify-content:space-between">
+                <span style="font:600 16.5px/1 'Instrument Sans'">Ticket {{ folio }}</span>
+                <span style="font:400 13px/1 'JetBrains Mono';color:var(--muted)">19 ago 2026 · 14:38</span>
+              </div>
+              <div style="display:flex;gap:4px;padding:4px;background:var(--chip);border-radius:9px">
+                <button onClick="{{ modoDirecta }}" style="{{ tabDirecta }}">Venta directa</button>
+                <button onClick="{{ modoApartado }}" style="{{ tabApartado }}">Apartado</button>
+              </div>
+            </div>
+            <div style="flex:1;min-height:0;overflow-y:auto;padding:13px 18px;display:flex;flex-direction:column;gap:10px">
+              <sc-if value="{{ carritoVacio }}" hint-placeholder-val="{{ false }}">
+                <div style="border:1.5px dashed var(--border2);border-radius:10px;padding:26px 16px;text-align:center;font:400 14.5px/1.5 'Instrument Sans';color:var(--muted)">Toca un producto para agregarlo al ticket.</div>
+              </sc-if>
+              <sc-for list="{{ carrito }}" as="c" hint-placeholder-count="2">
+                <div style="display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--border);border-radius:9px">
+                  <div style="display:flex;gap:10px;align-items:center">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                      <div style="font:600 14.5px/1.25 'Instrument Sans'">{{ c.name }}</div>
+                      <div style="font:400 12.5px/1.2 'JetBrains Mono';color:var(--muted)">{{ c.sku }} · {{ c.precio }}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <button onClick="{{ c.dec }}" style="width:26px;height:26px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);color:var(--text);font:600 15px/1 'Instrument Sans';cursor:pointer">−</button>
+                      <span style="font:600 14px/1 'JetBrains Mono';min-width:14px;text-align:center">{{ c.qty }}</span>
+                      <button onClick="{{ c.inc }}" style="width:26px;height:26px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);color:var(--text);font:600 15px/1 'Instrument Sans';cursor:pointer">+</button>
+                    </div>
+                    <span style="font:600 14.5px/1 'JetBrains Mono';min-width:64px;text-align:right">{{ c.total }}</span>
+                    <button onClick="{{ c.quitar }}" style="width:24px;height:24px;border:none;background:transparent;color:var(--faint);font:500 17.5px/1 'Instrument Sans';cursor:pointer">×</button>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <button onClick="{{ c.toggleProbado }}" style="{{ c.probadoStyle }}">P · probado</button>
+                    <div style="display:flex">
+                      <button onClick="{{ c.setPct }}" style="{{ c.descPctStyle }}">%</button>
+                      <button onClick="{{ c.setMonto }}" style="{{ c.descMontoStyle }}">$</button>
+                    </div>
+                    <input value="{{ c.descValor }}" onChange="{{ c.onDescValor }}" placeholder="Descuento" style="width:88px;height:26px;border:1px solid var(--border2);border-radius:6px;background:var(--surface);color:var(--text);padding:0 8px;font:500 14px/1 'JetBrains Mono';outline:none" />
+                  </div>
+                  <sc-if value="{{ c.probado }}" hint-placeholder-val="{{ false }}">
+                    <div style="font:500 13px/1.35 'Instrument Sans';color:var(--badtext)">Prenda probada · sin cambios ni devoluciones</div>
+                  </sc-if>
+                  <sc-if value="{{ c.hayDescuento }}" hint-placeholder-val="{{ false }}">
+                    <div style="font:500 13px/1.35 'Instrument Sans';color:var(--ptext)">{{ c.descuentoNota }}</div>
+                  </sc-if>
+                </div>
+              </sc-for>
+              <div style="display:flex;gap:9px;padding:10px 11px;border-radius:8px;background:var(--psoft);border:1px solid var(--psoftb)">
+                <span style="font:600 13px/1.35 'JetBrains Mono';color:var(--ptext)">i</span>
+                <span style="font:400 13px/1.45 'Instrument Sans';color:var(--ptext);text-wrap:pretty">Regla de stock: se descuenta <strong>1 unidad</strong> del modelo general, sin importar la variante de color.</span>
+              </div>
+              <sc-if value="{{ esApartado }}" hint-placeholder-val="{{ true }}">
+                <div style="border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--surface2)">
+                  <div style="font:600 14px/1 'Instrument Sans'">Datos del apartado</div>
+                  <div style="display:flex;flex-direction:column;gap:6px">
+                    <label style="font:500 13px/1 'Instrument Sans';color:var(--muted)">Nombre del cliente</label>
+                    <input value="{{ cliente }}" onChange="{{ onCliente }}" placeholder="Ej. Ana Lucía Ferrer" style="height:38px;border:1px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text);padding:0 10px;font:400 15px/1 'Instrument Sans';outline:none" />
+                  </div>
+                  <div style="display:flex;gap:10px">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+                      <label style="font:500 13px/1 'Instrument Sans';color:var(--muted)">Abono inicial</label>
+                      <input value="{{ abono }}" onChange="{{ onAbono }}" placeholder="0.00" style="height:38px;border:1.5px solid var(--primary);border-radius:7px;background:var(--surface);color:var(--text);padding:0 10px;font:600 15px/1 'JetBrains Mono';outline:none" />
+                    </div>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+                      <label style="font:500 13px/1 'Instrument Sans';color:var(--muted)">Teléfono</label>
+                      <input value="{{ telefono }}" onChange="{{ onTelefono }}" placeholder="55 0000 0000" style="height:38px;border:1px solid var(--border2);border-radius:7px;background:var(--surface);color:var(--text);padding:0 10px;font:400 15px/1 'JetBrains Mono';outline:none" />
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;border-radius:8px;background:var(--warnsoft);border:1px solid var(--warn)">
+                    <div style="display:flex;flex-direction:column;gap:3px">
+                      <span style="font:500 11.5px/1 'JetBrains Mono';color:var(--warntext);letter-spacing:.04em">VENCE EN 15 DÍAS</span>
+                      <span style="font:700 16.5px/1 'Instrument Sans';color:var(--warntext)">3 sep 2026</span>
+                    </div>
+                    <span style="font:500 12.5px/1.35 'Instrument Sans';color:var(--warntext);text-align:right;max-width:150px">Si no se liquida, la prenda regresa al stock y el abono se penaliza.</span>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+            <div style="border-top:1px solid var(--border);padding:14px 18px 16px;display:flex;flex-direction:column;gap:8px;background:var(--surface2)">
+              <div style="display:flex;justify-content:space-between;font:400 14px/1 'Instrument Sans';color:var(--muted)"><span>Subtotal · {{ piezas }} pzas</span><span style="font-family:'JetBrains Mono'">{{ subtotal }}</span></div>
+              <sc-if value="{{ hayDescuentoArticulos }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;justify-content:space-between;font:500 14px/1 'Instrument Sans';color:var(--ptext)"><span>Descuento en artículos</span><span style="font-family:'JetBrains Mono'">−{{ descuentoArticulos }}</span></div>
+              </sc-if>
+              <div style="height:1px;background:var(--border);margin:2px 0"></div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:600 16.5px/1 'Instrument Sans'">{{ etiquetaPago }}</span><span style="font:700 25px/1 'JetBrains Mono'">{{ montoPago }}</span></div>
+              <sc-if value="{{ esApartado }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;justify-content:space-between;font:500 13.5px/1 'Instrument Sans';color:var(--muted)"><span>Resta al 3 sep</span><span style="font-family:'JetBrains Mono'">{{ resta }}</span></div>
+              </sc-if>
+              <button onClick="{{ abrirCobro }}" style="{{ estiloCobrar }}">{{ etiquetaCobrar }}</button>
+              <button onClick="{{ cancelar }}" style="height:34px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);font:500 14px/1 'Instrument Sans';color:var(--badtext);cursor:pointer">Cancelar ticket</button>
+            </div>
+          </div>
+          </sc-if>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ enInv }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+        <div style="padding:15px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <span style="font:700 18.5px/1 'Instrument Sans'">{{ tituloForm }}</span>
+            <span style="font:400 13px/1 'JetBrains Mono';color:var(--muted)">{{ totalModelos }} modelos · {{ totalUnidades }} unidades</span>
+          </div>
+        </div>
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:16px 18px;display:flex;justify-content:center;align-items:flex-start">
+          <div style="{{ formWrap }}">
+            <div style="flex:none;display:flex;gap:4px;padding:4px;background:var(--chip);border-radius:10px">
+              <button onClick="{{ modoUnico }}" style="{{ tabUnico }}">Pieza única</button>
+              <button onClick="{{ modoLote }}" style="{{ tabLote }}">Por lote</button>
+            </div>
+            <div style="flex:none;display:flex;flex-direction:column;gap:6px">
+              <label style="font:500 14px/1 'Instrument Sans';color:var(--muted)">Nombre del producto</label>
+              <input value="{{ fNombre }}" onChange="{{ onNombre }}" placeholder="Ej. Jean recto tiro alto" style="height:46px;border:1.5px solid var(--primary);border-radius:9px;background:var(--surface);color:var(--text);padding:0 13px;font:400 17.5px/1 'Instrument Sans';outline:none" />
+            </div>
+            <div style="flex:none;display:flex;gap:10px">
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+                <label style="font:500 14px/1 'Instrument Sans';color:var(--muted)">Marca</label>
+                <input value="{{ fMarca }}" onChange="{{ onMarca }}" placeholder="Ej. Alta Denim" style="height:46px;border:1px solid var(--border2);border-radius:9px;background:var(--surface);color:var(--text);padding:0 13px;font:400 17.5px/1 'Instrument Sans';outline:none" />
+              </div>
+              <div style="width:130px;flex:none;display:flex;flex-direction:column;gap:6px">
+                <label style="font:500 14px/1 'Instrument Sans';color:var(--muted)">Precio</label>
+                <input value="{{ fPrecio }}" onChange="{{ onPrecio }}" placeholder="0.00" style="height:46px;border:1px solid var(--border2);border-radius:9px;background:var(--surface);color:var(--text);padding:0 13px;font:600 17.5px/1 'JetBrains Mono';outline:none" />
+              </div>
+            </div>
+            <sc-if value="{{ hayTallas }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:none;display:flex;flex-direction:column;gap:8px">
+              <label style="font:500 14px/1 'Instrument Sans';color:var(--muted)">Talla</label>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <sc-for list="{{ tallas }}" as="t" hint-placeholder-count="6">
+                  <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            </sc-if>
+            <sc-if value="{{ sinTallas }}" hint-placeholder-val="{{ false }}">
+            <div style="flex:none;font:400 14px/1.4 'Instrument Sans';color:var(--muted)">Los vestidos no manejan tallas: cada pieza es única.</div>
+            </sc-if>
+            <div style="flex:none;display:flex;flex-direction:column;gap:8px">
+              <label style="font:500 14px/1 'Instrument Sans';color:var(--muted)">Categoría</label>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <sc-for list="{{ catsForm }}" as="c" hint-placeholder-count="4">
+                  <button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <sc-if value="{{ esLote }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:none;border:1px solid var(--psoftb);background:var(--psoft);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                  <span style="font:600 15px/1 'Instrument Sans';color:var(--ptext)">Unidades a dar de alta</span>
+                  <span style="font:400 11.5px/1 'JetBrains Mono';color:var(--ptext)">mismo modelo · mismo precio</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px">
+                  <button onClick="{{ menos }}" style="width:52px;height:52px;border-radius:12px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font:500 25px/1 'Instrument Sans';cursor:pointer">−</button>
+                  <div style="flex:1;height:52px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:grid;place-items:center;font:700 29px/1 'JetBrains Mono'">{{ fCantidad }}</div>
+                  <button onClick="{{ mas }}" style="width:52px;height:52px;border-radius:12px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font:500 25px/1 'Instrument Sans';cursor:pointer">+</button>
+                </div>
+                <div style="display:flex;gap:7px">
+                  <button onClick="{{ mas5 }}" style="flex:1;height:34px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font:500 14px/1 'JetBrains Mono';cursor:pointer">+5</button>
+                  <button onClick="{{ mas10 }}" style="flex:1;height:34px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font:500 14px/1 'JetBrains Mono';cursor:pointer">+10</button>
+                  <button onClick="{{ mas20 }}" style="flex:1;height:34px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font:500 14px/1 'JetBrains Mono';cursor:pointer">+20</button>
+                </div>
+                <div style="font:400 13px/1.45 'Instrument Sans';color:var(--ptext)">Las variantes de color no se registran: las {{ fCantidad }} unidades comparten un solo SKU.</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ esUnico }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:none;border:1px solid var(--border);border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:6px;background:var(--surface)">
+                <span style="font:600 14.5px/1 'Instrument Sans'">Pieza única</span>
+                <span style="font:400 13px/1.45 'Instrument Sans';color:var(--muted)">Una unidad, SKU automático: <span style="font-family:'JetBrains Mono'">{{ skuPreview }}</span></span>
+              </div>
+            </sc-if>
+            <button onClick="{{ guardar }}" style="{{ estiloGuardar }}">{{ etiquetaGuardar }}</button>
+            <button onClick="{{ limpiar }}" style="flex:none;min-height:38px;border:none;background:transparent;font:500 14.5px/1 'Instrument Sans';color:var(--muted);cursor:pointer">Limpiar formulario</button>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ enApa }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+        <div style="padding:15px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px">
+          <span style="font:700 18.5px/1 'Instrument Sans'">Apartados activos</span>
+          <span style="font:400 13.5px/1 'Instrument Sans';color:var(--muted)">{{ apaCount }} activos · {{ apaReservado }} por cobrar · {{ nRojos }} vencidos</span>
+        </div>
+        <div style="{{ apaBodyStyle }}">
+          <sc-for list="{{ columnas }}" as="col" hint-placeholder-count="3">
+            <div style="{{ col.style }}">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="width:8px;height:8px;border-radius:50%;background:{{ col.color }}"></span>
+                <span style="font:600 14.5px/1 'Instrument Sans'">{{ col.titulo }}</span>
+                <span style="{{ col.badgeStyle }}">{{ col.n }}</span>
+              </div>
+              <sc-for list="{{ col.items }}" as="l" hint-placeholder-count="2">
+                <div style="{{ l.cardStyle }}">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">
+                    <span style="font:600 16px/1.2 'Instrument Sans'">{{ l.cliente }}</span>
+                    <span style="{{ l.badgeStyle }}">{{ l.restante }}</span>
+                  </div>
+                  <div style="font:400 13.5px/1.35 'Instrument Sans';color:var(--muted)">{{ l.item }}</div>
+                  <div style="display:flex;flex-direction:column;gap:5px">
+                    <div style="height:6px;border-radius:3px;background:var(--chip);overflow:hidden"><div style="height:100%;border-radius:3px;background:{{ l.color }};width:{{ l.pct }}"></div></div>
+                    <div style="display:flex;justify-content:space-between;font:500 12.5px/1 'JetBrains Mono';color:var(--muted)"><span>Abonado {{ l.pagado }}</span><span>de {{ l.total }}</span></div>
+                  </div>
+                  <div style="font:500 12.5px/1.35 'Instrument Sans';color:{{ l.color }}">{{ l.nota }}</div>
+                  <div style="{{ l.accionesStyle }}">
+                    <button onClick="{{ l.pagar }}" style="{{ l.pagarStyle }}">Registrar 2º pago</button>
+                    <button onClick="{{ l.penalizar }}" style="{{ l.penalizarStyle }}">{{ l.penalizarLabel }}</button>
+                  </div>
+                </div>
+              </sc-for>
+              <sc-if value="{{ col.vacio }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:16px;border:1.5px dashed var(--border2);border-radius:9px;text-align:center;font:400 13.5px/1.4 'Instrument Sans';color:var(--muted)">Sin apartados en este estado.</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ enAna }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+        <div style="padding:15px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:11px">
+          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+            <span style="font:700 19.5px/1 'Instrument Sans'">Reportes y comisiones</span>
+            <span style="font:600 10.5px/1 'JetBrains Mono';color:var(--surface);background:var(--text);padding:4px 6px;border-radius:4px">ADMIN</span>
+            <span style="font:400 13.5px/1 'Instrument Sans';color:var(--muted)">{{ rangoLabel }}</span>
+          </div>
+          <div style="display:flex;gap:4px;padding:4px;background:var(--chip);border-radius:9px">
+            <sc-for list="{{ periodos }}" as="p" hint-placeholder-count="3">
+              <button onClick="{{ p.onClick }}" style="{{ p.style }}">{{ p.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:16px;align-content:flex-start">
+          <div style="{{ kpiGrid }}">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:15px;display:flex;flex-direction:column;gap:7px">
+                <span style="font:500 12.5px/1 'JetBrains Mono';color:var(--muted);letter-spacing:.03em">{{ k.label }}</span>
+                <span style="{{ k.valorStyle }}">{{ k.valor }}</span>
+                <span style="{{ k.notaStyle }}">{{ k.nota }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="flex:none;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:15px;display:flex;flex-direction:column;gap:13px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+              <span style="font:600 16px/1 'Instrument Sans'">Tendencia · {{ periodoActual }}</span>
+              <span style="font:400 12.5px/1 'JetBrains Mono';color:var(--faint)">{{ tendenciaNota }}</span>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:8px;height:130px">
+              <sc-for list="{{ barras }}" as="b" hint-placeholder-count="7">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+                  <div style="{{ b.style }}"></div>
+                  <span style="{{ b.labelStyle }}">{{ b.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="flex:none;background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow:hidden">
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;justify-content:space-between;gap:10px">
+              <span style="font:600 16px/1 'Instrument Sans'">Ventas por vendedor</span>
+              <span style="font:400 12.5px/1 'JetBrains Mono';color:var(--faint)">{{ periodoActual }}</span>
+            </div>
+            <sc-if value="{{ esPc }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:1.6fr .7fr .9fr .6fr .9fr;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border);font:500 11.5px/1 'JetBrains Mono';color:var(--muted);letter-spacing:.04em">
+                <span>VENDEDOR</span><span style="text-align:right">TICKETS</span><span style="text-align:right">INGRESO</span><span style="text-align:right">TASA</span><span style="text-align:right">COMISIÓN</span>
+              </div>
+              <sc-for list="{{ vendedores }}" as="v" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:1.6fr .7fr .9fr .6fr .9fr;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <span style="width:28px;height:28px;border-radius:50%;background:var(--chip);display:grid;place-items:center;font:600 12.5px/1 'Instrument Sans';color:var(--muted)">{{ v.ini }}</span>
+                    <div style="display:flex;flex-direction:column;gap:2px">
+                      <span style="font:600 14.5px/1 'Instrument Sans'">{{ v.nombre }}</span>
+                      <span style="font:400 11.5px/1 'JetBrains Mono';color:var(--faint)">{{ v.puesto }}</span>
+                    </div>
+                  </div>
+                  <span style="text-align:right;font:500 14px/1 'JetBrains Mono';color:var(--muted)">{{ v.tickets }}</span>
+                  <span style="text-align:right;font:600 14.5px/1 'JetBrains Mono'">{{ v.ingreso }}</span>
+                  <span style="text-align:right;font:500 14px/1 'JetBrains Mono';color:var(--muted)">{{ v.tasa }}</span>
+                  <span style="text-align:right;font:700 14.5px/1 'JetBrains Mono';color:var(--ptext)">{{ v.comision }}</span>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ esMovil }}" hint-placeholder-val="{{ false }}">
+              <sc-for list="{{ vendedores }}" as="v" hint-placeholder-count="4">
+                <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:9px">
+                  <div style="display:flex;align-items:center;gap:9px">
+                    <span style="width:28px;height:28px;border-radius:50%;background:var(--chip);display:grid;place-items:center;font:600 12.5px/1 'Instrument Sans';color:var(--muted)">{{ v.ini }}</span>
+                    <span style="font:600 15px/1 'Instrument Sans'">{{ v.nombre }}</span>
+                    <span style="margin-left:auto;font:500 12.5px/1 'JetBrains Mono';color:var(--muted)">{{ v.tickets }} tickets</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font:400 13px/1 'JetBrains Mono';color:var(--muted)"><span>Ingreso</span><span style="color:var(--text);font-weight:600">{{ v.ingreso }}</span></div>
+                  <div style="display:flex;justify-content:space-between;font:400 13px/1 'JetBrains Mono';color:var(--muted)"><span>Comisión ({{ v.tasa }})</span><span style="color:var(--ptext);font-weight:700">{{ v.comision }}</span></div>
+                </div>
+              </sc-for>
+            </sc-if>
+          </div>
+
+          <div style="flex:none;background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow:hidden">
+            <div style="padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <span style="font:600 16px/1 'Instrument Sans'">Inventario</span>
+              <span style="font:400 12.5px/1 'JetBrains Mono';color:var(--faint)">{{ totalModelos }} modelos · {{ totalUnidades }} u</span>
+              <button onClick="{{ irInv }}" style="margin-left:auto;height:34px;padding:0 13px;border-radius:8px;border:none;background:var(--primary);color:var(--pfg);font:600 13.5px/1 'Instrument Sans';cursor:pointer">+ Nuevo producto</button>
+            </div>
+            <sc-for list="{{ inventario }}" as="p" hint-placeholder-count="4">
+              <div style="{{ p.rowStyle }}">
+                <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                  <span style="font:600 14.5px/1.2 'Instrument Sans'">{{ p.name }}</span>
+                  <span style="font:400 11.5px/1 'JetBrains Mono';color:var(--faint)">{{ p.brand }} · {{ p.sku }} · {{ p.tallas }}</span>
+                </div>
+                <div style="{{ p.metaStyle }}">
+                  <span style="font:600 14px/1 'JetBrains Mono'">{{ p.precio }}</span>
+                  <span style="font:500 13px/1 'JetBrains Mono';color:var(--muted)">{{ p.stock }} u</span>
+                  <span style="font:500 13px/1 'JetBrains Mono';color:var(--muted)">{{ p.sold }} vend.</span>
+                </div>
+                <div style="display:flex;gap:7px;justify-content:flex-end">
+                  <button onClick="{{ p.editar }}" style="height:30px;padding:0 12px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font:500 13.5px/1 'Instrument Sans';cursor:pointer">Editar</button>
+                  <button onClick="{{ p.eliminar }}" style="height:30px;padding:0 12px;border-radius:7px;border:1px solid var(--bad);background:var(--surface);color:var(--badtext);font:500 13.5px/1 'Instrument Sans';cursor:pointer">Eliminar</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ enPersonal }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+        <div style="padding:15px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px">
+          <span style="font:700 18.5px/1 'Instrument Sans'">Personal y accesos</span>
+          <span style="font:400 13.5px/1 'Instrument Sans';color:var(--muted)">{{ nUsuarios }} usuarios · sesión activa: {{ usuario }}</span>
+        </div>
+        <div style="{{ personalBody }}">
+          <div style="{{ personalCol }}">
+            <div style="flex:none;background:var(--surface);border:1px solid var(--border);border-radius:11px;overflow:hidden">
+              <div style="padding:13px 16px;border-bottom:1px solid var(--border);font:600 16px/1 'Instrument Sans'">Usuarios registrados</div>
+              <sc-for list="{{ usuarios }}" as="u" hint-placeholder-count="3">
+                <div style="{{ u.rowStyle }}">
+                  <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                    <span style="width:30px;height:30px;border-radius:50%;background:var(--chip);display:grid;place-items:center;font:600 13px/1 'Instrument Sans';color:var(--muted)">{{ u.ini }}</span>
+                    <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+                      <span style="font:600 14.5px/1.2 'Instrument Sans'">{{ u.nombre }}</span>
+                      <span style="font:400 11.5px/1 'JetBrains Mono';color:var(--faint)">{{ u.usuario }} · comisión {{ u.tasa }}</span>
+                    </div>
+                  </div>
+                  <span style="{{ u.rolStyle }}">{{ u.rolLabel }}</span>
+                  <div style="display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap">
+                    <button onClick="{{ u.entrarComo }}" style="{{ u.entrarStyle }}">{{ u.entrarLabel }}</button>
+                    <button onClick="{{ u.alternarRol }}" style="height:30px;padding:0 11px;border-radius:7px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font:500 13.5px/1 'Instrument Sans';cursor:pointer">Cambiar rol</button>
+                    <button onClick="{{ u.eliminar }}" style="{{ u.eliminarStyle }}">Eliminar</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="{{ personalForm }}">
+            <div style="font:600 16px/1 'Instrument Sans'">Registrar nuevo personal</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label style="font:500 13.5px/1 'Instrument Sans';color:var(--muted)">Nombre completo</label>
+              <input value="{{ rNombre }}" onChange="{{ onRNombre }}" placeholder="Ej. Laura Beltrán" style="height:42px;border:1.5px solid var(--primary);border-radius:8px;background:var(--surface);color:var(--text);padding:0 12px;font:400 16.5px/1 'Instrument Sans';outline:none" />
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label style="font:500 13.5px/1 'Instrument Sans';color:var(--muted)">Usuario de acceso</label>
+              <input value="{{ rUsuario }}" onChange="{{ onRUsuario }}" placeholder="ej. laura.b" style="height:42px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);padding:0 12px;font:400 16.5px/1 'JetBrains Mono';outline:none" />
+            </div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+                <label style="font:500 13.5px/1 'Instrument Sans';color:var(--muted)">NIP (4 dígitos)</label>
+                <input value="{{ rNip }}" onChange="{{ onRNip }}" placeholder="0000" style="height:42px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);padding:0 12px;font:600 16.5px/1 'JetBrains Mono';letter-spacing:.3em;outline:none" />
+              </div>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+                <label style="font:500 13.5px/1 'Instrument Sans';color:var(--muted)">Comisión %</label>
+                <input value="{{ rTasa }}" onChange="{{ onRTasa }}" placeholder="6" style="height:42px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);padding:0 12px;font:600 16.5px/1 'JetBrains Mono';outline:none" />
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <label style="font:500 13.5px/1 'Instrument Sans';color:var(--muted)">Rol</label>
+              <div style="display:flex;gap:4px;padding:4px;background:var(--chip);border-radius:9px">
+                <button onClick="{{ rolAdmin }}" style="{{ tabRolAdmin }}">Admin</button>
+                <button onClick="{{ rolVendedor }}" style="{{ tabRolVendedor }}">Vendedor</button>
+              </div>
+              <span style="font:400 13px/1.45 'Instrument Sans';color:var(--muted)">{{ rolAyuda }}</span>
+            </div>
+            <button onClick="{{ registrar }}" style="height:46px;border:none;border-radius:9px;background:var(--primary);color:var(--pfg);font:600 16.5px/1 'Instrument Sans';cursor:pointer">Registrar usuario</button>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ enCambio }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column">
+        <div style="padding:15px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px">
+          <span style="font:700 18.5px/1 'Instrument Sans'">Cambio de usuario</span>
+          <span style="font:400 13.5px/1 'Instrument Sans';color:var(--muted)">El turno actual de {{ usuario }} queda registrado al cambiar.</span>
+        </div>
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:18px;display:flex;justify-content:center">
+          <div style="{{ cambioWrap }}">
+            <sc-for list="{{ usuariosCambio }}" as="u" hint-placeholder-count="3">
+              <button onClick="{{ u.onClick }}" style="{{ u.style }}">
+                <span style="width:34px;height:34px;border-radius:50%;background:var(--chip);display:grid;place-items:center;font:600 13.5px/1 'Instrument Sans';color:var(--muted)">{{ u.ini }}</span>
+                <span style="display:flex;flex-direction:column;gap:3px;text-align:left">
+                  <span style="font:600 16px/1 'Instrument Sans'">{{ u.nombre }}</span>
+                  <span style="font:400 12.5px/1 'JetBrains Mono';color:var(--faint)">{{ u.rolLabel }} · {{ u.usuario }}</span>
+                </span>
+                <span style="margin-left:auto;font:600 12.5px/1 'JetBrains Mono';color:var(--ptext)">{{ u.marca }}</span>
+              </button>
+            </sc-for>
+            <button onClick="{{ salir }}" style="height:44px;border:1px solid var(--border2);border-radius:9px;background:var(--surface);color:var(--badtext);font:600 14.5px/1 'Instrument Sans';cursor:pointer">Cerrar sesión y volver al inicio</button>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      </div>
+
+      <sc-if value="{{ esMovil }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;border-top:1px solid var(--border);background:var(--surface);padding:8px 6px 14px;display:flex;gap:3px">
+        <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5">
+          <button onClick="{{ n.onClick }}" style="{{ n.movilStyle }}">{{ n.label }}</button>
+        </sc-for>
+      </div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ hayPago }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(10,10,12,.55);display:grid;place-items:center;padding:24px">
+      <div style="{{ modalStyle }}">
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <span style="font:700 20px/1.2 'Instrument Sans'">Pasarela de pago</span>
+          <span style="font:400 14px/1.5 'Instrument Sans';color:var(--muted);text-wrap:pretty">Elige cómo paga el cliente antes de imprimir el ticket.</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button onClick="{{ setEfectivo }}" style="{{ metodoEfectivoStyle }}">Efectivo</button>
+          <button onClick="{{ setTransfer }}" style="{{ metodoTransferStyle }}">Transferencia</button>
+          <button onClick="{{ setTarjeta }}" style="{{ metodoTarjetaStyle }}">Tarjeta</button>
+        </div>
+        <sc-if value="{{ hayDescPago }}" hint-placeholder-val="{{ false }}">
+          <div style="font:500 13.5px/1.4 'Instrument Sans';color:var(--ptext)">Descuento por método de pago: −{{ descPago }}</div>
+        </sc-if>
+        <sc-if value="{{ esEfectivo }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+              <label style="font:500 13.5px/1 'Instrument Sans';color:var(--muted)">Efectivo recibido</label>
+              <input value="{{ recibido }}" onChange="{{ onRecibido }}" placeholder="0.00" style="height:42px;border:1.5px solid var(--primary);border-radius:7px;background:var(--surface);color:var(--text);padding:0 10px;font:600 16.5px/1 'JetBrains Mono';outline:none" />
+            </div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+              <label style="font:500 13.5px/1 'Instrument Sans';color:var(--muted)">Cambio</label>
+              <div style="height:42px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);display:flex;align-items:center;padding:0 10px;font:700 16.5px/1 'JetBrains Mono';color:var(--oktext)">{{ cambio }}</div>
+            </div>
+          </div>
+        </sc-if>
+        <div style="border-top:1px dashed var(--border2);padding-top:12px;display:flex;justify-content:space-between;align-items:baseline"><span style="font:600 14px/1 'Instrument Sans'">El vendedor recibe</span><span style="font:700 22px/1 'JetBrains Mono'">{{ vendedorRecibe }}</span></div>
+        <button onClick="{{ confirmarCobro }}" style="height:48px;border:none;border-radius:9px;background:var(--primary);color:var(--pfg);font:600 15.5px/1 'Instrument Sans';cursor:pointer">Confirmar e imprimir ticket</button>
+        <button onClick="{{ cerrarCobro }}" style="height:38px;border:none;background:transparent;font:500 13px/1 'Instrument Sans';color:var(--muted);cursor:pointer">Cancelar</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hayTicket }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(10,10,12,.55);display:grid;place-items:center;padding:24px">
+      <div style="{{ modalStyle }}">
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <span style="font:600 11.5px/1 'JetBrains Mono';color:var(--oktext);background:var(--oksoft);align-self:flex-start;padding:5px 7px;border-radius:5px">{{ ticketBadge }}</span>
+          <span style="font:700 20.5px/1.2 'Instrument Sans'">{{ ticketTitulo }}</span>
+          <span style="font:400 14px/1.5 'Instrument Sans';color:var(--muted);text-wrap:pretty">{{ ticketDetalle }}</span>
+        </div>
+        <div style="border-top:1px dashed var(--border2);border-bottom:1px dashed var(--border2);padding:12px 0;display:flex;flex-direction:column;gap:7px">
+          <sc-for list="{{ ticketLineas }}" as="t" hint-placeholder-count="2">
+            <div style="display:flex;justify-content:space-between;gap:10px;font:400 13.5px/1.3 'JetBrains Mono';color:var(--muted)"><span>{{ t.label }}</span><span style="color:var(--text)">{{ t.valor }}</span></div>
+          </sc-for>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font:600 15px/1 'Instrument Sans'">{{ ticketTotalLabel }}</span><span style="font:700 23px/1 'JetBrains Mono'">{{ ticketTotal }}</span></div>
+        <button onClick="{{ cerrarTicket }}" style="height:44px;border:none;border-radius:9px;background:var(--primary);color:var(--pfg);font:600 16.5px/1 'Instrument Sans';cursor:pointer">Listo</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ hayAviso }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:16px;right:16px;bottom:20px;display:flex;justify-content:center;pointer-events:none">
+      <span style="background:var(--text);color:var(--surface);padding:12px 18px;border-radius:10px;font:600 14.5px/1.35 'Instrument Sans';text-align:center;box-shadow:0 12px 28px -12px rgba(0,0,0,.6)">{{ aviso }}</span>
+    </div>
+  </sc-if>
+</div>
+</div>
+
+<div style="{{ pieStyle }}">Prototipo funcional: inicio de sesión con NIP, alta y cambio de personal, stock, apartados, comisiones y reportes mensual / trimestral / anual se recalculan en vivo. Cambia entre PC y Móvil arriba a la derecha.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:1030},&quot;colorMarca&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;oklch(0.5 0.15 155)&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;oklch(0.52 0.19 268)&quot;,&quot;oklch(0.55 0.14 200)&quot;,&quot;oklch(0.5 0.15 155)&quot;,&quot;oklch(0.56 0.17 20)&quot;],&quot;section&quot;:&quot;Identidad&quot;},&quot;densidad&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Compacta&quot;,&quot;Estándar&quot;,&quot;Amplia&quot;],&quot;default&quot;:&quot;Amplia&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Ritmo&quot;}}">
+const MXN = n => '$' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const CATS = ['Todo', 'Mezclilla', 'Blusas', 'Chamarras', 'Vestidos', 'Accesorios'];
+const PERIODOS = {
+  'Mes': { rango: '1 – 19 ago 2026', ventas: 248910, tickets: 614, factor: 1, nota: 'ventas por día (últimos 7)',
+    labels: ['M', 'M', 'J', 'V', 'S', 'D', 'L'], serie: [58, 72, 46, 88, 100, 39, 64] },
+  'Trimestre': { rango: 'jun – ago 2026', ventas: 731540, tickets: 1846, factor: 2.94, nota: 'ventas por mes',
+    labels: ['Jun', 'Jul', 'Ago'], serie: [78, 92, 100] },
+  'Año': { rango: 'ene – ago 2026', ventas: 1984200, tickets: 5012, factor: 7.97, nota: 'ventas por mes',
+    labels: ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A'], serie: [54, 61, 70, 66, 82, 78, 92, 100] }
+};
+
+class Component extends DCLogic {
+  state = {
+    disp: 'pc', vista: 'pos', panel: 'catalogo', periodo: 'Mes',
+    sesion: null, loginSel: 1, nip: '', loginErr: '',
+    busqueda: '', cat: 'Todo', modo: 'directa',
+    cliente: '', telefono: '', abono: '',
+    carrito: [], folio: 1042, ticket: null, aviso: null, pago: { metodo: 'efectivo', recibido: '' }, pagoAbierto: false,
+    ventasNuevas: 0, ticketsNuevos: 0, penalizado: 1240,
+    reg: { nombre: '', usuario: '', nip: '', tasa: '6', rol: 'vendedor' },
+    form: { nombre: '', marca: '', precio: '', talla: 'M', cat: 'Mezclilla', modo: 'lote', cantidad: 10, editando: null },
+    usuarios: [
+      { id: 1, nombre: 'Daniela Ochoa', usuario: 'daniela.o', ini: 'DO', rol: 'admin', nip: '1234', tasa: 0, tickets: 0, ingreso: 0 },
+      { id: 2, nombre: 'Marisol Rivas', usuario: 'marisol.r', ini: 'MR', rol: 'vendedor', nip: '1234', tasa: 6, tickets: 214, ingreso: 96420 },
+      { id: 3, nombre: 'Julio Tenorio', usuario: 'julio.t', ini: 'JT', rol: 'vendedor', nip: '1234', tasa: 6, tickets: 178, ingreso: 71340 },
+      { id: 4, nombre: 'Nadia Cruz', usuario: 'nadia.c', ini: 'NC', rol: 'vendedor', nip: '1234', tasa: 5, tickets: 132, ingreso: 52880 },
+      { id: 5, nombre: 'Alonso Vega', usuario: 'alonso.v', ini: 'AV', rol: 'vendedor', nip: '1234', tasa: 8, tickets: 90, ingreso: 28270 }
+    ],
+    productos: [
+      { id: 1, name: 'Jean recto tiro alto', brand: 'Alta Denim', cat: 'Mezclilla', sku: 'ALT-JN-0413', precio: 899, stock: 14, sold: 64, tallas: '26–34' },
+      { id: 2, name: 'Camisa popelina oversize', brand: 'Norte', cat: 'Blusas', sku: 'NRT-SH-0119', precio: 549, stock: 22, sold: 51, tallas: 'S–L' },
+      { id: 3, name: 'Chamarra de mezclilla corta', brand: 'Alta Denim', cat: 'Chamarras', sku: 'ALT-JK-0088', precio: 1249, stock: 6, sold: 38, tallas: 'S–L' },
+      { id: 4, name: 'Top de canalé', brand: 'Luma', cat: 'Blusas', sku: 'LUM-TP-0202', precio: 329, stock: 31, sold: 44, tallas: 'XS–M' },
+      { id: 5, name: 'Pantalón de lino amplio', brand: 'Casa Verde', cat: 'Mezclilla', sku: 'CSV-PT-0055', precio: 789, stock: 9, sold: 21, tallas: '28–32' },
+      { id: 6, name: 'Abrigo de lana', brand: 'Norte', cat: 'Chamarras', sku: 'NRT-OC-0021', precio: 2190, stock: 3, sold: 12, tallas: 'M–L' },
+      { id: 7, name: 'Vestido midi satinado', brand: 'Luma', cat: 'Vestidos', sku: 'LUM-VS-0310', precio: 979, stock: 11, sold: 27, tallas: 'Única', descuento: { tipo: 'pct', valor: 10 } },
+      { id: 9, name: 'Vestido de gala bordado', brand: 'Luma', cat: 'Vestidos', sku: 'LUM-VS-0455', precio: 1450, stock: 5, sold: 9, tallas: 'Única', descuento: { tipo: 'monto', valor: 100 } },
+      { id: 8, name: 'Cinturón de piel 35 mm', brand: 'Atlas', cat: 'Accesorios', sku: 'ATL-BL-0077', precio: 389, stock: 18, sold: 33, tallas: '80–90' }
+    ],
+    apartados: [
+      { id: 101, cliente: 'Ana Lucía Ferrer', pid: 6, item: 'Abrigo de lana · talla M', total: 2190, pagado: 900, dias: 13, horas: 4, vence: '1 sep' },
+      { id: 102, cliente: 'Rubén Salas', pid: 3, item: 'Chamarra de mezclilla · L', total: 1249, pagado: 600, dias: 11, horas: 9, vence: '30 ago' },
+      { id: 103, cliente: 'Paola Méndez', pid: 7, item: 'Vestido midi satinado · S', total: 979, pagado: 500, dias: 9, horas: 2, vence: '28 ago' },
+      { id: 104, cliente: 'Diego Ortiz', pid: 5, item: 'Pantalón de lino · 32', total: 789, pagado: 300, dias: 1, horas: 6, vence: '20 ago' },
+      { id: 105, cliente: 'Carmen Ruiz', pid: 1, item: 'Jean recto tiro alto · 30', total: 899, pagado: 400, dias: 2, horas: 1, vence: '21 ago' },
+      { id: 106, cliente: 'Iván Barrera', pid: 6, item: 'Abrigo de lana · L', total: 2190, pagado: 700, dias: -2, horas: 0, vence: '17 ago' },
+      { id: 107, cliente: 'Sofía Lara', pid: 4, item: 'Top de canalé ×2 · M', total: 658, pagado: 150, dias: -4, horas: 0, vence: '15 ago' }
+    ]
+  };
+
+  componentDidMount() { this.pintarMarca(); }
+  componentDidUpdate() { this.pintarMarca(); }
+  pintarMarca() {
+    const el = this._raiz, c = this.props.colorMarca;
+    if (!el || !c) return;
+    el.style.setProperty('--primary', c);
+    el.style.setProperty('--psoft', 'color-mix(in oklab, ' + c + ' 14%, var(--surface))');
+    el.style.setProperty('--psoftb', 'color-mix(in oklab, ' + c + ' 36%, var(--surface))');
+    el.style.setProperty('--ptext', 'color-mix(in oklab, ' + c + ' 74%, var(--text))');
+  }
+  dens() {
+    const d = this.props.densidad || 'Estándar';
+    if (d === 'Compacta') return { cols: 4, alto: 108, gap: 10, kpi: 20 };
+    if (d === 'Amplia') return { cols: 2, alto: 168, gap: 18, kpi: 30 };
+    return { cols: 3, alto: 132, gap: 13, kpi: 26 };
+  }
+  avisar(t) { clearTimeout(this._t); this.setState({ aviso: t }); this._t = setTimeout(() => this.setState({ aviso: null }), 2800); }
+  componentWillUnmount() { clearTimeout(this._t); }
+  user() { return this.state.usuarios.find(u => u.id === this.state.sesion) || null; }
+  esAdmin() { const u = this.user(); return !!u && u.rol === 'admin'; }
+
+  seg(active, h) {
+    return { flex: 1, height: h || 34, border: 'none', borderRadius: 7, cursor: 'pointer', whiteSpace: 'nowrap',
+      font: "600 14px/1 'Instrument Sans'", background: active ? 'var(--surface)' : 'transparent',
+      color: active ? 'var(--text)' : 'var(--muted)', boxShadow: active ? '0 1px 2px rgba(0,0,0,.18)' : 'none' };
+  }
+  pill(active) {
+    return { border: active ? 'none' : '1px solid var(--border2)', borderRadius: 999, padding: '8px 13px', flex: 'none',
+      cursor: 'pointer', font: "500 14px/1 'Instrument Sans'", whiteSpace: 'nowrap',
+      background: active ? 'var(--text)' : 'transparent', color: active ? 'var(--surface)' : 'var(--muted)' };
+  }
+  chip(active) {
+    return { minWidth: 48, height: 44, borderRadius: 8, cursor: 'pointer', padding: '0 12px',
+      border: active ? '1.5px solid var(--primary)' : '1px solid var(--border2)',
+      background: active ? 'var(--primary)' : 'var(--surface)',
+      color: active ? 'var(--pfg)' : 'var(--muted)', font: "600 15px/1 'JetBrains Mono'" };
+  }
+  userBtn(active) {
+    return { display: 'flex', alignItems: 'center', gap: 11, padding: 11, borderRadius: 9, cursor: 'pointer',
+      background: active ? 'var(--psoft)' : 'var(--surface)',
+      border: active ? '1.5px solid var(--primary)' : '1px solid var(--border)', color: 'var(--text)' };
+  }
+  metodoBtn(active) {
+    return { flex: 1, height: 40, borderRadius: 8, cursor: 'pointer', border: active ? '1.5px solid var(--primary)' : '1px solid var(--border2)',
+      background: active ? 'var(--psoft)' : 'var(--surface)', color: active ? 'var(--ptext)' : 'var(--muted)', font: "600 14px/1 'Instrument Sans'" };
+  }
+
+  agregar(p) {
+    if (p.stock < 1) return this.avisar('Sin existencias de ' + p.name);
+    this.setState(s => {
+      const ex = s.carrito.find(c => c.id === p.id);
+      return { carrito: ex ? s.carrito.map(c => c.id === p.id ? { ...c, qty: c.qty + 1 } : c) : [...s.carrito, { id: p.id, qty: 1, probado: false, descTipo: 'pct', descValor: '' }],
+        productos: s.productos.map(x => x.id === p.id ? { ...x, stock: x.stock - 1 } : x) };
+    });
+  }
+  cambiar(id, d) {
+    this.setState(s => {
+      const it = s.carrito.find(c => c.id === id), prod = s.productos.find(p => p.id === id);
+      if (!it || (d > 0 && prod.stock < 1)) return {};
+      const qty = it.qty + d;
+      return { carrito: qty < 1 ? s.carrito.filter(c => c.id !== id) : s.carrito.map(c => c.id === id ? { ...c, qty } : c),
+        productos: s.productos.map(p => p.id === id ? { ...p, stock: p.stock - d } : p) };
+    });
+  }
+  quitar(id) {
+    this.setState(s => {
+      const it = s.carrito.find(c => c.id === id);
+      return { carrito: s.carrito.filter(c => c.id !== id),
+        productos: s.productos.map(p => p.id === id ? { ...p, stock: p.stock + (it ? it.qty : 0) } : p) };
+    });
+  }
+  cancelar() {
+    this.setState(s => ({ carrito: [], cliente: '', telefono: '', abono: '', pago: { metodo: 'efectivo', recibido: '' }, pagoAbierto: false,
+      productos: s.productos.map(p => { const it = s.carrito.find(c => c.id === p.id); return it ? { ...p, stock: p.stock + it.qty } : p; }) }));
+    this.avisar('Ticket cancelado · unidades devueltas al stock');
+  }
+  toggleProbado(id) { this.setState(s => ({ carrito: s.carrito.map(c => c.id === id ? { ...c, probado: !c.probado } : c) })); }
+  setDescTipo(id, tipo) { this.setState(s => ({ carrito: s.carrito.map(c => c.id === id ? { ...c, descTipo: tipo } : c) })); }
+  setDescValor(id, valor) { this.setState(s => ({ carrito: s.carrito.map(c => c.id === id ? { ...c, descValor: valor } : c) })); }
+  setMetodoPago(metodo) { this.setState(s => ({ pago: { ...s.pago, metodo } })); }
+  setRecibido(valor) { this.setState(s => ({ pago: { ...s.pago, recibido: valor } })); }
+
+  abrirCobro(lay, subtotalApartado, totalFinal, lineas) {
+    if (!this.state.carrito.length) return this.avisar('Agrega al menos un producto');
+    if (lay) return this.cobrar(subtotalApartado, lineas);
+    this.setState({ pagoAbierto: true });
+  }
+  cobrar(total, lineas) {
+    const s = this.state, u = this.user();
+    if (!s.carrito.length) return this.avisar('Agrega al menos un producto');
+    if (s.modo === 'apartado') {
+      const ab = parseFloat(String(s.abono).replace(/[^0-9.]/g, ''));
+      if (!s.cliente.trim()) return this.avisar('Captura el nombre del cliente');
+      if (!ab || ab <= 0) return this.avisar('Captura el abono inicial');
+      if (ab >= total) return this.avisar('El abono debe ser menor al total');
+      const nuevo = { id: Date.now(), cliente: s.cliente.trim(), pid: s.carrito[0].id,
+        item: lineas.map(l => l.label).join(' · '), total, pagado: ab, dias: 15, horas: 0, vence: '3 sep' };
+      this.setState({ apartados: [nuevo, ...s.apartados], ventasNuevas: s.ventasNuevas + ab, ticketsNuevos: s.ticketsNuevos + 1,
+        folio: s.folio + 1, carrito: [], cliente: '', telefono: '', abono: '', panel: 'catalogo',
+        usuarios: s.usuarios.map(x => x.id === u.id ? { ...x, ingreso: x.ingreso + ab, tickets: x.tickets + 1 } : x),
+        ticket: { badge: 'FOLIO A-' + s.folio, titulo: 'Apartado registrado',
+          detalle: 'Recibo impreso. La prenda queda reservada 15 días a nombre de ' + s.cliente.trim() + '; vence el 3 sep 2026.',
+          lineas: [...lineas, { label: 'Abono recibido', valor: MXN(ab) }, { label: 'Resta por pagar', valor: MXN(total - ab) }],
+          totalLabel: 'Abono recibido', total: MXN(ab) } });
+    } else {
+      if (s.pago.metodo === 'efectivo') {
+        const recibidoChk = parseFloat(String(s.pago.recibido).replace(/[^0-9.]/g, '')) || 0;
+        if (recibidoChk < total) return this.avisar('El efectivo recibido es menor al total a cobrar');
+      }
+      const metodoLabel = s.pago.metodo === 'efectivo' ? 'Efectivo' : s.pago.metodo === 'transferencia' ? 'Transferencia' : 'Tarjeta';
+      const recibidoNum = parseFloat(String(s.pago.recibido).replace(/[^0-9.]/g, '')) || 0;
+      const cambioNum = s.pago.metodo === 'efectivo' ? Math.max(0, recibidoNum - total) : 0;
+      this.setState({ ventasNuevas: s.ventasNuevas + total, ticketsNuevos: s.ticketsNuevos + 1, folio: s.folio + 1, carrito: [], panel: 'catalogo',
+        pago: { metodo: 'efectivo', recibido: '' }, pagoAbierto: false,
+        productos: s.productos.map(p => { const it = s.carrito.find(c => c.id === p.id); return it ? { ...p, sold: p.sold + it.qty } : p; }),
+        usuarios: s.usuarios.map(x => x.id === u.id ? { ...x, ingreso: x.ingreso + total, tickets: x.tickets + 1 } : x),
+        ticket: { badge: 'TICKET ' + s.folio, titulo: 'Venta completada',
+          detalle: 'Ticket impreso · pago con ' + metodoLabel + '. Comisión de ' + MXN(total * (u.tasa / 100)) + ' acreditada a ' + u.nombre + '.',
+          lineas: [...lineas, { label: 'Método de pago', valor: metodoLabel }].concat(s.pago.metodo === 'efectivo' ? [{ label: 'Recibido', valor: MXN(recibidoNum) }, { label: 'Cambio', valor: MXN(cambioNum) }] : []),
+          totalLabel: 'Total cobrado', total: MXN(total) } });
+    }
+  }
+
+  pagar(a) {
+    const u = this.user();
+    this.setState(s => ({ apartados: s.apartados.filter(x => x.id !== a.id),
+      ventasNuevas: s.ventasNuevas + (a.total - a.pagado), ticketsNuevos: s.ticketsNuevos + 1,
+      productos: s.productos.map(p => p.id === a.pid ? { ...p, sold: p.sold + 1 } : p),
+      usuarios: s.usuarios.map(x => x.id === u.id ? { ...x, ingreso: x.ingreso + (a.total - a.pagado), tickets: x.tickets + 1 } : x),
+      ticket: { badge: 'PAGO 2 DE 2', titulo: 'Apartado liquidado',
+        detalle: a.cliente + ' liquidó su apartado. La prenda sale de reserva y se entrega.',
+        lineas: [{ label: a.item, valor: MXN(a.total) }, { label: 'Abono previo', valor: MXN(a.pagado) }],
+        totalLabel: 'Cobrado hoy', total: MXN(a.total - a.pagado) } }));
+  }
+  penalizar(a) {
+    const prod = this.state.productos.find(p => p.id === a.pid);
+    const teniaDescuento = !!(prod && prod.descuento);
+    this.setState(s => ({ apartados: s.apartados.filter(x => x.id !== a.id), penalizado: s.penalizado + a.pagado,
+      productos: s.productos.map(p => p.id === a.pid ? { ...p, stock: p.stock + 1, descuento: null } : p) }));
+    this.avisar('Abono de ' + MXN(a.pagado) + ' penalizado · 1 unidad regresó al stock' + (teniaDescuento ? ' · descuento del producto retirado por vencimiento' : ''));
+  }
+
+  guardar() {
+    const f = this.state.form;
+    if (!f.nombre.trim()) return this.avisar('Captura el nombre del producto');
+    const precio = parseFloat(String(f.precio).replace(/[^0-9.]/g, ''));
+    if (!precio) return this.avisar('Captura un precio válido');
+    if (f.editando) {
+      this.setState(s => ({ productos: s.productos.map(p => p.id === f.editando
+        ? { ...p, name: f.nombre.trim(), brand: f.marca.trim() || p.brand, precio, cat: f.cat, stock: f.modo === 'lote' ? f.cantidad : p.stock } : p),
+        form: { ...f, editando: null, nombre: '', marca: '', precio: '' } }));
+      return this.avisar('Producto actualizado');
+    }
+    const n = f.modo === 'lote' ? f.cantidad : 1;
+    const marca = f.marca.trim() || 'Sin marca';
+    const sku = marca.slice(0, 3).toUpperCase() + '-' + f.cat.slice(0, 2).toUpperCase() + '-' + String(Math.floor(Math.random() * 9000) + 1000);
+    this.setState(s => ({ productos: [{ id: Date.now(), name: f.nombre.trim(), brand: marca, cat: f.cat, sku, precio, stock: n, sold: 0, tallas: f.cat === 'Vestidos' ? 'Única' : f.talla }, ...s.productos],
+      form: { ...f, nombre: '', marca: '', precio: '' } }));
+    this.avisar(n === 1 ? 'Pieza única dada de alta · SKU ' + sku : n + ' unidades dadas de alta · SKU ' + sku);
+  }
+
+  setForm(p) { this.setState(s => ({ form: { ...s.form, ...p } })); }
+  setReg(p) { this.setState(s => ({ reg: { ...s.reg, ...p } })); }
+
+  registrar() {
+    const r = this.state.reg;
+    if (!r.nombre.trim()) return this.avisar('Captura el nombre del personal');
+    if (!/^\d{4}$/.test(r.nip)) return this.avisar('El NIP debe tener 4 dígitos');
+    const partes = r.nombre.trim().split(/\s+/);
+    const ini = (partes[0][0] + (partes[1] ? partes[1][0] : '')).toUpperCase();
+    const usuario = r.usuario.trim() || (partes[0] + '.' + (partes[1] ? partes[1][0] : '')).toLowerCase();
+    if (this.state.usuarios.some(u => u.usuario === usuario)) return this.avisar('Ese usuario ya existe');
+    this.setState(s => ({ usuarios: [...s.usuarios, { id: Date.now(), nombre: r.nombre.trim(), usuario, ini, rol: r.rol,
+      nip: r.nip, tasa: parseFloat(r.tasa) || 0, tickets: 0, ingreso: 0 }],
+      reg: { nombre: '', usuario: '', nip: '', tasa: '6', rol: 'vendedor' } }));
+    this.avisar(r.nombre.trim() + ' registrado como ' + (r.rol === 'admin' ? 'Admin' : 'Vendedor'));
+  }
+
+  entrar(id) {
+    const s = this.state;
+    const u = s.usuarios.find(x => x.id === (id || s.loginSel));
+    if (!u) return this.setState({ loginErr: 'Selecciona un usuario' });
+    if (s.nip !== u.nip) return this.setState({ loginErr: 'NIP incorrecto para ' + u.nombre + ' (demo: ' + u.nip + ')' });
+    this.setState({ sesion: u.id, nip: '', loginErr: '', vista: 'pos', panel: 'catalogo' });
+    this.avisar('Bienvenida, ' + u.nombre.split(' ')[0]);
+  }
+
+  renderVals() {
+    const s = this.state, u = this.user(), admin = this.esAdmin();
+    const D = this.dens();
+    const pc = s.disp === 'pc';
+    const ancho = pc ? 1440 : 390, alto = pc ? 900 : 812;
+    const per = PERIODOS[s.periodo];
+
+    const productosF = s.productos.filter(p => (s.cat === 'Todo' || p.cat === s.cat) &&
+      (!s.busqueda.trim() || (p.name + ' ' + p.brand + ' ' + p.sku).toLowerCase().includes(s.busqueda.trim().toLowerCase())));
+
+    const calcLinea = (c, p) => {
+      const base = p.precio * c.qty;
+      const auto = p.descuento ? (p.descuento.tipo === 'pct' ? base * p.descuento.valor / 100 : p.descuento.valor) : 0;
+      const manualVal = parseFloat(String(c.descValor).replace(/[^0-9.]/g, '')) || 0;
+      const manual = manualVal > 0 ? (c.descTipo === 'pct' ? base * manualVal / 100 : manualVal) : 0;
+      const desc = Math.min(manual > 0 ? manual : auto, base);
+      return { base, desc, total: base - desc, auto: auto > 0 && manual === 0 };
+    };
+    const carrito = s.carrito.map(c => {
+      const p = s.productos.find(x => x.id === c.id) || {};
+      const calc = calcLinea(c, p);
+      return { name: p.name, sku: p.sku, precio: MXN(p.precio), qty: c.qty, total: MXN(calc.total),
+        inc: () => this.cambiar(c.id, 1), dec: () => this.cambiar(c.id, -1), quitar: () => this.quitar(c.id),
+        probado: c.probado,
+        probadoStyle: { height: 26, padding: '0 9px', borderRadius: 6, cursor: 'pointer',
+          border: c.probado ? 'none' : '1px solid var(--border2)', background: c.probado ? 'var(--bad)' : 'var(--surface)',
+          color: c.probado ? '#fff' : 'var(--muted)', font: "700 13px/1 'JetBrains Mono'" },
+        toggleProbado: () => this.toggleProbado(c.id),
+        descValor: c.descValor, onDescValor: e => this.setDescValor(c.id, e.target.value),
+        descPctStyle: { height: 26, padding: '0 8px', borderRadius: '6px 0 0 6px', border: '1px solid var(--border2)', borderRight: 'none',
+          background: c.descTipo === 'pct' ? 'var(--primary)' : 'var(--surface)', color: c.descTipo === 'pct' ? 'var(--pfg)' : 'var(--muted)',
+          font: "700 13px/1 'JetBrains Mono'", cursor: 'pointer' },
+        descMontoStyle: { height: 26, padding: '0 8px', borderRadius: '0 6px 6px 0', border: '1px solid var(--border2)',
+          background: c.descTipo === 'monto' ? 'var(--primary)' : 'var(--surface)', color: c.descTipo === 'monto' ? 'var(--pfg)' : 'var(--muted)',
+          font: "700 13px/1 'JetBrains Mono'", cursor: 'pointer' },
+        setPct: () => this.setDescTipo(c.id, 'pct'), setMonto: () => this.setDescTipo(c.id, 'monto'),
+        hayDescuento: calc.desc > 0,
+        descuentoNota: calc.desc > 0 ? (calc.auto ? 'Descuento de prenda aplicado: −' + MXN(calc.desc) : 'Descuento manual: −' + MXN(calc.desc)) : '' };
+    });
+    const subtotalBruto = s.carrito.reduce((t, c) => { const p = s.productos.find(x => x.id === c.id); return t + (p ? p.precio * c.qty : 0); }, 0);
+    const descuentoArticulos = s.carrito.reduce((t, c) => { const p = s.productos.find(x => x.id === c.id) || {}; return t + calcLinea(c, p).desc; }, 0);
+    const subtotal = subtotalBruto - descuentoArticulos;
+    const piezas = s.carrito.reduce((t, c) => t + c.qty, 0);
+    const lineas = s.carrito.map(c => { const p = s.productos.find(x => x.id === c.id); return { label: p.name + ' ×' + c.qty, valor: MXN(calcLinea(c, p).total) }; });
+    const ab = parseFloat(String(s.abono).replace(/[^0-9.]/g, '')) || 0;
+    const lay = s.modo === 'apartado';
+    const descPago = (!lay && (s.pago.metodo === 'efectivo' || s.pago.metodo === 'transferencia')) ? 15 : 0;
+    const totalFinal = Math.max(0, subtotal - descPago);
+    const recibidoNumR = parseFloat(String(s.pago.recibido).replace(/[^0-9.]/g, '')) || 0;
+    const cambioR = (s.pago.metodo === 'efectivo') ? Math.max(0, recibidoNumR - totalFinal) : 0;
+
+    const dec = a => {
+      const estado = a.dias < 0 ? 'rojo' : a.dias <= 3 ? 'amarillo' : 'verde';
+      const color = estado === 'rojo' ? 'var(--bad)' : estado === 'amarillo' ? 'var(--warn)' : 'var(--ok)';
+      const soft = estado === 'rojo' ? 'var(--badsoft)' : estado === 'amarillo' ? 'var(--warnsoft)' : 'var(--oksoft)';
+      const txt = estado === 'rojo' ? 'var(--badtext)' : estado === 'amarillo' ? 'var(--warntext)' : 'var(--oktext)';
+      return { estado, color, cliente: a.cliente, item: a.item,
+        restante: a.dias < 0 ? 'VENCIDO ' + Math.abs(a.dias) + 'd' : a.dias + 'd ' + a.horas + 'h',
+        pagado: MXN(a.pagado), total: MXN(a.total), pct: Math.round(a.pagado / a.total * 100) + '%',
+        nota: estado === 'rojo' ? 'Venció ' + a.vence + ' · abono a penalizar'
+          : estado === 'amarillo' ? 'Recordatorio enviado · vence ' + a.vence : 'Vence ' + a.vence,
+        cardStyle: { background: 'var(--surface)', border: '1px solid ' + (estado === 'rojo' ? 'var(--bad)' : 'var(--border)'),
+          borderLeft: '3px solid ' + color, borderRadius: 9, padding: 13, display: 'flex', flexDirection: 'column', gap: 9 },
+        badgeStyle: { font: "600 11.5px/1 'JetBrains Mono'", padding: '4px 6px', borderRadius: 4,
+          background: estado === 'rojo' ? 'var(--bad)' : soft, color: estado === 'rojo' ? '#fff' : txt },
+        accionesStyle: { display: 'flex', flexDirection: (estado === 'rojo' || !pc) ? 'column' : 'row', gap: 7 },
+        pagarStyle: { width: '100%', height: pc ? 34 : 44, borderRadius: 8, border: 'none', background: estado === 'rojo' ? 'var(--surface)' : 'var(--primary)',
+          boxShadow: estado === 'rojo' ? 'inset 0 0 0 1px var(--border2)' : 'none',
+          color: estado === 'rojo' ? 'var(--text)' : 'var(--pfg)', font: "600 " + (pc ? 11.5 : 13) + "px/1.2 'Instrument Sans'", cursor: 'pointer', order: estado === 'rojo' ? 2 : 1 },
+        penalizarStyle: { width: '100%', minHeight: pc ? 34 : 44, padding: '9px 12px', borderRadius: 8,
+          border: estado === 'rojo' ? 'none' : '1px solid var(--border2)',
+          background: estado === 'rojo' ? 'var(--bad)' : 'var(--surface)', color: estado === 'rojo' ? '#fff' : 'var(--badtext)',
+          font: "600 " + (pc ? 11.5 : 13) + "px/1.25 'Instrument Sans'", cursor: 'pointer', order: estado === 'rojo' ? 1 : 2, textWrap: 'pretty' },
+        penalizarLabel: estado === 'rojo' ? 'Penalizar y regresar a stock' : 'Penalizar',
+        pagar: () => this.pagar(a), penalizar: () => this.penalizar(a) };
+    };
+    const apa = s.apartados.map(dec);
+    const orden = { rojo: 0, amarillo: 1, verde: 2 };
+    const colStyle = fondo => ({ padding: '16px 16px', display: 'flex', flexDirection: 'column', gap: 11,
+      borderRight: pc ? '1px solid var(--border)' : 'none', background: fondo || 'transparent' });
+    const columnas = pc ? [
+      { titulo: 'En tiempo', color: 'var(--ok)', items: apa.filter(a => a.estado === 'verde'), style: colStyle() },
+      { titulo: 'Por vencer', color: 'var(--warn)', items: apa.filter(a => a.estado === 'amarillo'), style: colStyle() },
+      { titulo: 'Vencidos · acción requerida', color: 'var(--bad)', items: apa.filter(a => a.estado === 'rojo'), style: colStyle('var(--badsoft)') }
+    ] : [{ titulo: 'Todos los apartados', color: 'var(--primary)',
+      items: apa.slice().sort((a, b) => orden[a.estado] - orden[b.estado]), style: colStyle() }];
+    columnas.forEach(c => { c.n = c.items.length; c.vacio = c.items.length === 0;
+      c.badgeStyle = { font: "500 11.5px/1 'JetBrains Mono'", color: 'var(--muted)', background: 'var(--chip)', padding: '3px 6px', borderRadius: 4 }; });
+
+    const vendedores = s.usuarios.filter(x => x.rol === 'vendedor').map(v => {
+      const ing = v.ingreso * per.factor;
+      return { ini: v.ini, nombre: v.nombre, puesto: 'vendedor · comisión ' + v.tasa + '%',
+        tickets: Math.round(v.tickets * per.factor), ingreso: MXN(ing), tasa: v.tasa + '%', comision: MXN(ing * v.tasa / 100) };
+    });
+    const comisionTotal = s.usuarios.filter(x => x.rol === 'vendedor').reduce((t, v) => t + v.ingreso * per.factor * v.tasa / 100, 0);
+    const ventasTotales = per.ventas + s.ventasNuevas * per.factor;
+    const tickets = per.tickets + s.ticketsNuevos;
+
+    const t = s.ticket;
+    const nav = [
+      { key: 'pos', label: 'Venta' }, { key: 'inv', label: 'Alta' }, { key: 'apa', label: 'Apartados' }
+    ].concat(admin ? [{ key: 'ana', label: 'Reportes' }, { key: 'per', label: 'Personal' }] : [{ key: 'cambio', label: 'Usuario' }]);
+
+    return {
+      raiz: el => { this._raiz = el; this.pintarMarca(); },
+      esPc: pc, esMovil: !pc,
+      tabPc: this.seg(pc), tabMovil: this.seg(!pc),
+      verPc: () => this.setState({ disp: 'pc' }), verMovil: () => this.setState({ disp: 'movil' }),
+      barraStyle: { width: ancho, maxWidth: '100%', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' },
+      pieStyle: { width: ancho, maxWidth: '100%', font: "400 13.5px/1.6 'Instrument Sans'", color: 'var(--muted)', paddingBottom: 10 },
+      marcoStyle: pc ? { display: 'contents' }
+        : { background: '#0d0d0e', borderRadius: 46, padding: 11, boxShadow: '0 18px 40px -20px rgba(0,0,0,.55)' },
+      shellStyle: { width: ancho, height: alto, background: 'var(--surface)',
+        border: pc ? '1px solid var(--border)' : 'none', borderRadius: pc ? 14 : 36,
+        boxShadow: pc ? 'var(--shadow)' : 'none', overflow: 'hidden', display: 'flex', position: 'relative' },
+      appStyle: { flex: 1, minWidth: 0, display: 'flex', flexDirection: pc ? 'row' : 'column' },
+
+      sesionActiva: !!u, enLogin: !u,
+      sesionLabel: u ? 'Sesión: ' + u.nombre + ' · ' + (admin ? 'Admin (superusuario)' : 'Vendedor') + ' · NIP demo 1234'
+        : 'Inicia sesión con NIP · demo 1234 para cualquier usuario',
+      usuario: u ? u.nombre : '', iniciales: u ? u.ini : '', rolLabel: admin ? 'ADMIN' : 'VENDEDOR',
+      salir: () => this.setState({ sesion: null, nip: '', loginErr: '', carrito: [], vista: 'pos' }),
+
+      loginWrap: { flex: 1, display: 'grid', placeItems: 'center', padding: pc ? 30 : 14, background: 'var(--surface2)', overflowY: 'auto' },
+      loginCard: { width: pc ? 400 : '100%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 14,
+        padding: pc ? 24 : 18, display: 'flex', flexDirection: 'column', gap: 16, boxShadow: 'var(--shadow)' },
+      usuariosLogin: s.usuarios.slice(0, 4).map(x => ({ ini: x.ini, nombre: x.nombre, usuario: x.usuario,
+        rolLabel: x.rol === 'admin' ? 'Admin' : 'Vendedor', marca: s.loginSel === x.id ? '● activo' : '',
+        style: this.userBtn(s.loginSel === x.id), onClick: () => this.setState({ loginSel: x.id, loginErr: '' }) })),
+      nipCasillas: [0, 1, 2, 3].map(i => ({ char: s.nip[i] ? '•' : '',
+        style: { flex: 1, height: 46, borderRadius: 9, border: '1px solid ' + (s.nip.length === i ? 'var(--primary)' : 'var(--border2)'),
+          background: 'var(--surface2)', display: 'grid', placeItems: 'center', font: "700 23px/1 'JetBrains Mono'", color: 'var(--text)' } })),
+      teclas: ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map(k => ({ label: k,
+        style: { height: 44, borderRadius: 9, border: '1px solid var(--border2)', background: 'var(--surface)', color: 'var(--text)',
+          font: "600 18.5px/1 'JetBrains Mono'", cursor: 'pointer' },
+        onClick: () => this.setState(st => ({ loginErr: '',
+          nip: k === 'C' ? '' : k === '⌫' ? st.nip.slice(0, -1) : (st.nip + k).slice(0, 4) })) })),
+      loginError: !!s.loginErr, loginErrorMsg: s.loginErr,
+      entrarStyle: { height: 48, border: 'none', borderRadius: 9, background: s.nip.length === 4 ? 'var(--primary)' : 'var(--chip)',
+        color: s.nip.length === 4 ? 'var(--pfg)' : 'var(--faint)', font: "600 16.5px/1 'Instrument Sans'",
+        cursor: s.nip.length === 4 ? 'pointer' : 'not-allowed' },
+      entrar: () => this.entrar(),
+      irRegistro: () => { this.setState({ sesion: 1, nip: '', loginErr: '', vista: 'per' }); this.avisar('Solo el Admin registra personal · entraste como Daniela Ochoa'); },
+
+      navItems: nav.map(n => ({ label: n.label,
+        style: { width: 62, height: 44, borderRadius: 9, border: 'none', cursor: 'pointer', font: "600 11px/1 'JetBrains Mono'",
+          background: s.vista === n.key ? 'rgba(255,255,255,.16)' : 'transparent', color: s.vista === n.key ? '#fff' : 'rgba(255,255,255,.5)' },
+        movilStyle: { flex: 1, minWidth: 0, height: 46, borderRadius: 9, border: 'none', cursor: 'pointer', padding: 0,
+          font: "600 11px/1 'JetBrains Mono'", background: s.vista === n.key ? 'var(--psoft)' : 'transparent',
+          color: s.vista === n.key ? 'var(--ptext)' : 'var(--muted)' },
+        onClick: () => this.setState({ vista: n.key }) })),
+      irCambio: () => this.setState({ vista: 'cambio' }),
+      enPos: s.vista === 'pos', enInv: s.vista === 'inv', enApa: s.vista === 'apa',
+      enAna: s.vista === 'ana' && admin, enPersonal: s.vista === 'per' && admin, enCambio: s.vista === 'cambio',
+
+      busqueda: s.busqueda, onBuscar: e => this.setState({ busqueda: e.target.value }),
+      categorias: CATS.map(c => ({ label: c === 'Todo' ? 'Todo · ' + s.productos.length : c,
+        style: this.pill(s.cat === c), onClick: () => this.setState({ cat: c }) })),
+      posBodyStyle: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'row' },
+      gridStyle: { display: 'grid', gridTemplateColumns: 'repeat(' + (pc ? D.cols : 1) + ', minmax(0,1fr))', gap: D.gap },
+      verCatalogo: pc || s.panel === 'catalogo', verTicket: pc || s.panel === 'ticket',
+      tabCatalogo: this.seg(s.panel === 'catalogo'), tabTicket: this.seg(s.panel === 'ticket'),
+      panelCatalogo: () => this.setState({ panel: 'catalogo' }), panelTicket: () => this.setState({ panel: 'ticket' }),
+      ticketPanelStyle: { width: pc ? 420 : '100%', flex: pc ? 'none' : 1, minWidth: 0, minHeight: 0,
+        borderLeft: pc ? '1px solid var(--border)' : 'none', background: 'var(--surface)', display: 'flex', flexDirection: 'column' },
+      productos: productosF.map(p => ({
+        sku: p.sku, name: p.name, brand: p.brand, tallas: p.tallas, precio: MXN(p.precio), stockLabel: p.stock + ' u',
+        stockStyle: { font: "600 11.5px/1 'JetBrains Mono'", padding: '4px 6px', borderRadius: 4,
+          background: p.stock === 0 ? 'var(--badsoft)' : p.stock <= 5 ? 'var(--warnsoft)' : 'var(--chip)',
+          color: p.stock === 0 ? 'var(--badtext)' : p.stock <= 5 ? 'var(--warntext)' : 'var(--muted)' },
+        style: { display: 'flex', flexDirection: 'column', gap: 7, minHeight: pc ? D.alto : 118, padding: D.gap, textAlign: 'left',
+          background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 10, cursor: 'pointer',
+          color: 'var(--text)', opacity: p.stock === 0 ? 0.5 : 1 },
+        onClick: () => this.agregar(p) })),
+      sinResultados: productosF.length === 0,
+
+      folio: '#' + s.folio, carrito, carritoVacio: carrito.length === 0, piezas, subtotal: MXN(subtotalBruto),
+      hayDescuentoArticulos: descuentoArticulos > 0, descuentoArticulos: MXN(descuentoArticulos),
+      esApartado: lay, esVentaDirecta: !lay, tabDirecta: this.seg(!lay), tabApartado: this.seg(lay),
+      modoDirecta: () => this.setState({ modo: 'directa' }), modoApartado: () => this.setState({ modo: 'apartado' }),
+      cliente: s.cliente, telefono: s.telefono, abono: s.abono,
+      onCliente: e => this.setState({ cliente: e.target.value }),
+      onTelefono: e => this.setState({ telefono: e.target.value }),
+      onAbono: e => this.setState({ abono: e.target.value }),
+      metodoEfectivoStyle: this.metodoBtn(s.pago.metodo === 'efectivo'),
+      metodoTransferStyle: this.metodoBtn(s.pago.metodo === 'transferencia'),
+      metodoTarjetaStyle: this.metodoBtn(s.pago.metodo === 'tarjeta'),
+      setEfectivo: () => this.setMetodoPago('efectivo'), setTransfer: () => this.setMetodoPago('transferencia'), setTarjeta: () => this.setMetodoPago('tarjeta'),
+      hayDescPago: descPago > 0, descPago: MXN(descPago), esEfectivo: s.pago.metodo === 'efectivo',
+      recibido: s.pago.recibido, onRecibido: e => this.setRecibido(e.target.value),
+      cambio: MXN(cambioR), vendedorRecibe: MXN(s.pago.metodo === 'efectivo' ? Math.min(recibidoNumR, totalFinal) : totalFinal),
+      etiquetaPago: lay ? 'Abono a cobrar' : 'Total a cobrar',
+      montoPago: MXN(lay ? ab : totalFinal), resta: MXN(Math.max(0, subtotal - ab)),
+      etiquetaCobrar: lay ? 'Apartar e imprimir recibo' : 'Cobrar e imprimir ticket',
+      estiloCobrar: { marginTop: 4, height: 46, border: 'none', borderRadius: 9,
+        background: carrito.length ? 'var(--primary)' : 'var(--chip)', color: carrito.length ? 'var(--pfg)' : 'var(--faint)',
+        font: "600 17.5px/1 'Instrument Sans'", cursor: carrito.length ? 'pointer' : 'not-allowed' },
+      abrirCobro: () => this.abrirCobro(lay, subtotal, totalFinal, lineas), cancelar: () => this.cancelar(),
+      confirmarCobro: () => this.cobrar(totalFinal, lineas), cerrarCobro: () => this.setState({ pagoAbierto: false }),
+      hayPago: s.pagoAbierto,
+
+      formWrap: { width: pc ? 520 : '100%', maxWidth: '100%', flex: 'none', display: 'flex', flexDirection: 'column', gap: 14 },
+      tituloForm: s.form.editando ? 'Editar producto' : 'Alta de inventario',
+      esLote: s.form.modo === 'lote', esUnico: s.form.modo === 'unico',
+      tabUnico: this.seg(s.form.modo === 'unico', 40), tabLote: this.seg(s.form.modo === 'lote', 40),
+      modoUnico: () => this.setForm({ modo: 'unico' }), modoLote: () => this.setForm({ modo: 'lote' }),
+      fNombre: s.form.nombre, fMarca: s.form.marca, fPrecio: s.form.precio, fCantidad: s.form.cantidad,
+      onNombre: e => this.setForm({ nombre: e.target.value }),
+      onMarca: e => this.setForm({ marca: e.target.value }),
+      onPrecio: e => this.setForm({ precio: e.target.value }),
+      hayTallas: s.form.cat !== 'Vestidos', sinTallas: s.form.cat === 'Vestidos',
+      tallas: (s.form.cat === 'Mezclilla' ? ['1', '3', '5', '7', '9', '11', '13', '15'] : s.form.cat === 'Vestidos' ? [] : ['XS', 'S', 'M', 'L', 'XL'])
+        .map(x => ({ label: x, style: this.chip(s.form.talla === x), onClick: () => this.setForm({ talla: x }) })),
+      catsForm: CATS.slice(1).map(c => ({ label: c,
+        style: { border: s.form.cat === c ? '1.5px solid var(--primary)' : '1px solid var(--border2)',
+          background: s.form.cat === c ? 'var(--psoft)' : 'var(--surface)', color: s.form.cat === c ? 'var(--ptext)' : 'var(--muted)',
+          borderRadius: 8, height: 38, padding: '0 13px', cursor: 'pointer', font: "500 14.5px/1 'Instrument Sans'" },
+        onClick: () => this.setForm({ cat: c, talla: c === 'Mezclilla' ? '1' : c === 'Vestidos' ? '' : 'M' }) })),
+      mas: () => this.setForm({ cantidad: s.form.cantidad + 1 }),
+      menos: () => this.setForm({ cantidad: Math.max(1, s.form.cantidad - 1) }),
+      mas5: () => this.setForm({ cantidad: s.form.cantidad + 5 }),
+      mas10: () => this.setForm({ cantidad: s.form.cantidad + 10 }),
+      mas20: () => this.setForm({ cantidad: s.form.cantidad + 20 }),
+      skuPreview: (s.form.marca.trim().slice(0, 3).toUpperCase() || 'GEN') + '-' + s.form.cat.slice(0, 2).toUpperCase() + '-0001',
+      etiquetaGuardar: s.form.editando ? 'Guardar cambios' : s.form.modo === 'lote' ? 'Dar de alta ' + s.form.cantidad + ' unidades' : 'Dar de alta 1 pieza',
+      estiloGuardar: { flex: 'none', minHeight: 52, border: 'none', borderRadius: 11, background: 'var(--primary)', color: 'var(--pfg)', font: "600 17.5px/1 'Instrument Sans'", cursor: 'pointer' },
+      guardar: () => this.guardar(), limpiar: () => this.setForm({ nombre: '', marca: '', precio: '', editando: null }),
+
+      apaBodyStyle: pc
+        ? { flex: 1, minHeight: 0, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }
+        : { flex: 1, minHeight: 0, overflowY: 'auto', display: 'block' },
+      columnas, apaCount: apa.length, nRojos: apa.filter(a => a.estado === 'rojo').length,
+      apaReservado: MXN(s.apartados.reduce((x, a) => x + (a.total - a.pagado), 0)),
+
+      periodoActual: s.periodo, rangoLabel: per.rango, tendenciaNota: per.nota,
+      periodos: Object.keys(PERIODOS).map(p => ({ label: p, style: this.seg(s.periodo === p), onClick: () => this.setState({ periodo: p }) })),
+      kpiGrid: { display: 'grid', gridTemplateColumns: 'repeat(' + (pc ? 4 : 2) + ',minmax(0,1fr))', gap: 12, flex: 'none' },
+      kpis: [
+        { label: 'VENTAS TOTALES', valor: MXN(ventasTotales), nota: '▲ 12.4% vs periodo anterior', tono: 'ok' },
+        { label: 'TICKETS', valor: String(tickets), nota: 'Promedio ' + MXN(ventasTotales / tickets), tono: 'muted' },
+        { label: 'COMISIONES POR PAGAR', valor: MXN(comisionTotal), nota: vendedores.length + ' vendedores activos', tono: 'primary' },
+        { label: 'APARTADOS', valor: String(apa.length), nota: apa.filter(a => a.estado === 'rojo').length + ' vencidos · ' + MXN(s.penalizado) + ' penalizado', tono: 'bad' }
+      ].map(k => ({ label: k.label, valor: k.valor, nota: k.nota,
+        valorStyle: { font: "700 " + (pc ? D.kpi : 20) + "px/1 'JetBrains Mono'", color: k.tono === 'primary' ? 'var(--ptext)' : 'var(--text)' },
+        notaStyle: { font: "500 12.5px/1.35 'Instrument Sans'",
+          color: k.tono === 'ok' ? 'var(--oktext)' : k.tono === 'bad' ? 'var(--badtext)' : 'var(--muted)' } })),
+      barras: per.serie.map((v, i) => ({ label: per.labels[i],
+        style: { width: '100%', height: v + '%', borderRadius: '5px 5px 0 0', background: v === 100 ? 'var(--primary)' : 'var(--chip)' },
+        labelStyle: { font: "500 11.5px/1 'JetBrains Mono'", color: v === 100 ? 'var(--text)' : 'var(--faint)' } })),
+      vendedores,
+      totalModelos: s.productos.length, totalUnidades: s.productos.reduce((x, p) => x + p.stock, 0),
+      inventario: s.productos.map(p => ({ name: p.name, brand: p.brand, tallas: p.tallas, sku: p.sku,
+        precio: MXN(p.precio), stock: p.stock, sold: p.sold,
+        rowStyle: { display: pc ? 'grid' : 'flex', gridTemplateColumns: pc ? '2fr 1.2fr 160px' : undefined,
+          flexDirection: pc ? undefined : 'column', gap: pc ? 12 : 9, alignItems: pc ? 'center' : 'stretch',
+          padding: '12px 16px', borderBottom: '1px solid var(--border)' },
+        metaStyle: { display: 'flex', gap: 14, justifyContent: pc ? 'flex-end' : 'flex-start', alignItems: 'baseline' },
+        editar: () => { this.setForm({ nombre: p.name, marca: p.brand, precio: String(p.precio), cat: p.cat, talla: p.tallas, modo: 'unico', editando: p.id }); this.setState({ vista: 'inv' }); },
+        eliminar: () => { this.setState(st => ({ productos: st.productos.filter(x => x.id !== p.id) })); this.avisar(p.name + ' eliminado del inventario'); } })),
+
+      nUsuarios: s.usuarios.length,
+      personalBody: { flex: 1, minHeight: 0, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: pc ? 16 : 12,
+        display: 'grid', gridTemplateColumns: pc ? '1.4fr 1fr' : 'minmax(0,1fr)', gap: 12, alignItems: 'start' },
+      personalCol: { display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 },
+      personalForm: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 11, padding: pc ? 16 : 13,
+        display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 },
+      usuarios: s.usuarios.map(x => ({ ini: x.ini, nombre: x.nombre, usuario: x.usuario,
+        tasa: x.rol === 'admin' ? '—' : x.tasa + '%', rolLabel: x.rol === 'admin' ? 'ADMIN' : 'VENDEDOR',
+        rowStyle: { display: pc ? 'grid' : 'flex', gridTemplateColumns: pc ? 'minmax(0,1.5fr) .7fr minmax(0,1.2fr)' : undefined,
+          flexDirection: pc ? undefined : 'column', gap: pc ? 12 : 10, alignItems: pc ? 'center' : 'stretch',
+          padding: pc ? '12px 16px' : '12px 13px', minWidth: 0, borderBottom: '1px solid var(--border)',
+          background: x.id === s.sesion ? 'var(--psoft)' : 'transparent' },
+        rolStyle: { font: "600 11px/1 'JetBrains Mono'", padding: '5px 7px', borderRadius: 4, justifySelf: pc ? 'start' : undefined,
+          alignSelf: 'flex-start', background: x.rol === 'admin' ? 'var(--text)' : 'var(--chip)',
+          color: x.rol === 'admin' ? 'var(--surface)' : 'var(--muted)' },
+        entrarLabel: x.id === s.sesion ? 'Sesión activa' : 'Entrar como',
+        entrarStyle: { height: 30, padding: '0 11px', borderRadius: 7, border: 'none',
+          background: x.id === s.sesion ? 'var(--chip)' : 'var(--primary)',
+          color: x.id === s.sesion ? 'var(--faint)' : 'var(--pfg)', font: "600 13.5px/1 'Instrument Sans'",
+          cursor: x.id === s.sesion ? 'default' : 'pointer' },
+        entrarComo: () => { if (x.id === s.sesion) return; this.setState({ sesion: x.id, vista: 'pos', panel: 'catalogo' }); this.avisar('Sesión cambiada a ' + x.nombre); },
+        alternarRol: () => { this.setState(st => ({ usuarios: st.usuarios.map(y => y.id === x.id ? { ...y, rol: y.rol === 'admin' ? 'vendedor' : 'admin' } : y) })); this.avisar(x.nombre + ' ahora es ' + (x.rol === 'admin' ? 'Vendedor' : 'Admin')); },
+        eliminarStyle: { height: 30, padding: '0 11px', borderRadius: 7, border: '1px solid var(--bad)', background: 'var(--surface)',
+          color: 'var(--badtext)', font: "500 13.5px/1 'Instrument Sans'", cursor: 'pointer', opacity: x.id === s.sesion ? 0.4 : 1 },
+        eliminar: () => { if (x.id === s.sesion) return this.avisar('No puedes eliminar la sesión activa');
+          this.setState(st => ({ usuarios: st.usuarios.filter(y => y.id !== x.id) })); this.avisar(x.nombre + ' eliminado'); } })),
+      rNombre: s.reg.nombre, rUsuario: s.reg.usuario, rNip: s.reg.nip, rTasa: s.reg.tasa,
+      onRNombre: e => this.setReg({ nombre: e.target.value }),
+      onRUsuario: e => this.setReg({ usuario: e.target.value }),
+      onRNip: e => this.setReg({ nip: e.target.value.replace(/\D/g, '').slice(0, 4) }),
+      onRTasa: e => this.setReg({ tasa: e.target.value.replace(/[^0-9.]/g, '') }),
+      tabRolAdmin: this.seg(s.reg.rol === 'admin'), tabRolVendedor: this.seg(s.reg.rol === 'vendedor'),
+      rolAdmin: () => this.setReg({ rol: 'admin' }), rolVendedor: () => this.setReg({ rol: 'vendedor' }),
+      rolAyuda: s.reg.rol === 'admin' ? 'Acceso total: reportes, comisiones, personal e inventario.' : 'Solo venta, alta de inventario y apartados. Genera comisión.',
+      registrar: () => this.registrar(),
+
+      cambioWrap: { width: pc ? 460 : '100%', display: 'flex', flexDirection: 'column', gap: 10 },
+      usuariosCambio: s.usuarios.map(x => ({ ini: x.ini, nombre: x.nombre, usuario: x.usuario,
+        rolLabel: x.rol === 'admin' ? 'Admin' : 'Vendedor', marca: x.id === s.sesion ? '● sesión activa' : 'entrar',
+        style: this.userBtn(x.id === s.sesion),
+        onClick: () => { if (x.id === s.sesion) return; this.setState({ sesion: x.id, vista: 'pos', panel: 'catalogo' }); this.avisar('Sesión cambiada a ' + x.nombre); } })),
+
+      modalStyle: { width: pc ? 400 : '100%', maxHeight: '100%', overflowY: 'auto', background: 'var(--surface)',
+        border: '1px solid var(--border)', borderRadius: 14, padding: 22, display: 'flex', flexDirection: 'column', gap: 13,
+        boxShadow: '0 24px 60px -20px rgba(0,0,0,.6)' },
+      hayTicket: !!t, ticketBadge: t ? t.badge : '', ticketTitulo: t ? t.titulo : '', ticketDetalle: t ? t.detalle : '',
+      ticketLineas: t ? t.lineas : [], ticketTotalLabel: t ? t.totalLabel : '', ticketTotal: t ? t.total : '',
+      cerrarTicket: () => this.setState({ ticket: null }),
+      hayAviso: !!s.aviso, aviso: s.aviso || ''
+    };
+  }
+}
+</script>
+</body>
+</html>
