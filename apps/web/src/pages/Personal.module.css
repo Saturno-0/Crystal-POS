@@ -1,0 +1,158 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  min-width: 0;
+}
+
+.layout > * {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.fila:last-child {
+  border-bottom: none;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--chip);
+  display: grid;
+  place-items: center;
+  font: 600 11px/1 var(--font-ui);
+  flex: none;
+}
+
+.badgeAdmin {
+  font: 600 10px/1 var(--font-mono);
+  background: var(--text);
+  color: var(--surface);
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+.badgeVendedor {
+  font: 600 10px/1 var(--font-mono);
+  background: var(--chip);
+  color: var(--muted);
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+.acciones {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btnAccion {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  font: 600 11.5px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.btnAccion:disabled {
+  color: var(--faint);
+  cursor: not-allowed;
+}
+
+.btnPeligro {
+  composes: btnAccion;
+  border-color: var(--bad);
+  color: var(--badtext);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.campo label {
+  font: 500 12px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+
+.input {
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 12px;
+  font: 400 14px/1 var(--font-ui);
+  outline: none;
+}
+
+.segmented {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--chip);
+  border-radius: 9px;
+}
+
+.segmentedBtn {
+  flex: 1;
+  height: 34px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 12.5px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.segmentedBtnActivo {
+  composes: segmentedBtn;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.ayuda {
+  font: 400 11.5px/1.4 var(--font-ui);
+  color: var(--faint);
+}
+
+.btnSubmit {
+  height: 48px;
+  border: none;
+  border-radius: 9px;
+  background: var(--primary);
+  color: var(--pfg);
+  font: 600 14px/1 var(--font-ui);
+  cursor: pointer;
+}

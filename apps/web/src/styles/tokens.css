@@ -1,0 +1,37 @@
+/* Tokens de diseño — copiados literal de docs/README.md § Design Tokens.
+   No editar valores aquí sin actualizar también el README (es la fuente de verdad). */
+:root {
+  --canvas: #eceae5;
+  --surface: #ffffff;
+  --surface2: #faf9f7;
+  --border: rgba(0, 0, 0, 0.09);
+  --border2: rgba(0, 0, 0, 0.14);
+  --text: #1c1c1a;
+  --muted: #6b6b72;
+  --faint: #a1a1aa;
+  --chip: #f1f0ed;
+  --rail: #1c1c1a;
+
+  --primary: oklch(0.5 0.15 155);
+  --pfg: #fff;
+  --psoft: color-mix(in oklab, var(--primary) 14%, var(--surface));
+  --psoftb: color-mix(in oklab, var(--primary) 36%, var(--surface));
+  --ptext: color-mix(in oklab, var(--primary) 74%, var(--text));
+
+  --ok: oklch(0.58 0.14 150);
+  --oksoft: oklch(0.95 0.05 150);
+  --oktext: oklch(0.43 0.13 150);
+  --warn: oklch(0.75 0.15 82);
+  --warnsoft: oklch(0.96 0.05 85);
+  --warntext: oklch(0.45 0.1 70);
+  --bad: oklch(0.56 0.19 25);
+  --badsoft: oklch(0.96 0.03 25);
+  --badtext: oklch(0.5 0.19 25);
+
+  --shadow: 0 12px 32px -18px rgba(0, 0, 0, 0.35);
+
+  --font-ui: 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --breakpoint-movil: 768px;
+}

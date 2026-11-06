@@ -1,0 +1,155 @@
+.contenedor {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.encabezado h1 {
+  font: 700 18px/1.2 var(--font-ui);
+  margin: 0 0 4px;
+}
+
+.resumen {
+  font: 500 12.5px/1.4 var(--font-mono);
+  color: var(--muted);
+}
+
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .kanban {
+    grid-template-columns: 1fr;
+  }
+}
+
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.columnaRoja {
+  composes: columna;
+  background: var(--badsoft);
+}
+
+.tituloColumna {
+  font: 700 12px/1 var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0 2px;
+}
+
+.tarjeta {
+  background: var(--surface);
+  border-radius: 9px;
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  border-left: 3px solid var(--ok);
+}
+
+.tarjetaAmarilla {
+  composes: tarjeta;
+  border-left-color: var(--warn);
+}
+
+.tarjetaRoja {
+  composes: tarjeta;
+  border-left-color: var(--bad);
+}
+
+.filaCliente {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nombreCliente {
+  font: 600 13.5px/1.3 var(--font-ui);
+}
+
+.badgeTiempo {
+  font: 600 10.5px/1 var(--font-mono);
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: var(--chip);
+  color: var(--muted);
+  flex: none;
+}
+
+.badgeVencido {
+  composes: badgeTiempo;
+  background: var(--bad);
+  color: #fff;
+}
+
+.descripcion {
+  font: 400 11.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+
+.barraFondo {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--chip);
+  overflow: hidden;
+}
+
+.barraRelleno {
+  height: 100%;
+  background: var(--primary);
+}
+
+.leyendaAbono {
+  font: 400 11px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+
+.nota {
+  font: 500 11px/1.3 var(--font-ui);
+}
+
+.acciones {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btnAccion {
+  flex: 1;
+  min-width: 96px;
+  height: 34px;
+  border-radius: 7px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  font: 600 11.5px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.btnPenalizar {
+  composes: btnAccion;
+  border-color: var(--bad);
+  color: var(--badtext);
+}
+
+.vacioColumna {
+  font: 400 12px/1.4 var(--font-ui);
+  color: var(--faint);
+  padding: 8px 2px;
+}

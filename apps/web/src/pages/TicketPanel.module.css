@@ -1,0 +1,319 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: var(--surface);
+}
+
+.encabezado {
+  flex: none;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.folio {
+  font: 700 15px/1.2 var(--font-ui);
+}
+
+.fecha {
+  font: 400 11.5px/1.3 var(--font-mono);
+  color: var(--muted);
+}
+
+.segmentedModo {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--chip);
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.segmentedModoBtn {
+  flex: 1;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 11.5px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.segmentedModoBtnActivo {
+  composes: segmentedModoBtn;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.bloqueApartado {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.inputApartado {
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 10px;
+  font: 400 13px/1 var(--font-ui);
+  outline: none;
+}
+
+.inputAbono {
+  border: 1.5px solid var(--primary);
+  font-family: var(--font-mono);
+}
+
+.avisoVencimiento {
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: var(--warnsoft);
+  color: var(--warntext);
+  font: 500 11px/1.4 var(--font-ui);
+}
+
+.cuerpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vacio {
+  flex: none;
+  border: 1px dashed var(--border2);
+  border-radius: 9px;
+  padding: 20px 14px;
+  text-align: center;
+  color: var(--muted);
+  font: 500 12.5px/1.4 var(--font-ui);
+}
+
+.linea {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  flex: none;
+}
+
+.filaLinea1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nombreLinea {
+  font: 600 12.5px/1.3 var(--font-ui);
+}
+
+.metaLinea {
+  font: 400 10.5px/1.3 var(--font-mono);
+  color: var(--muted);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
+.stepperBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  font: 700 14px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.cantidad {
+  min-width: 18px;
+  text-align: center;
+  font: 600 12.5px/1 var(--font-mono);
+}
+
+.importeLinea {
+  min-width: 64px;
+  text-align: right;
+  font: 700 13px/1 var(--font-mono);
+  flex: none;
+}
+
+.btnQuitar {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--faint);
+  font: 700 14px/1 var(--font-ui);
+  cursor: pointer;
+  flex: none;
+}
+
+.filaLinea2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.togglePBtn {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--muted);
+  font: 700 11px/1 var(--font-mono);
+  cursor: pointer;
+}
+
+.togglePActivo {
+  composes: togglePBtn;
+  background: var(--bad);
+  border-color: var(--bad);
+  color: #fff;
+}
+
+.segmentedDesc {
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border2);
+}
+
+.segmentedDescBtn {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: var(--surface);
+  color: var(--muted);
+  font: 700 12px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.segmentedDescBtnActivo {
+  composes: segmentedDescBtn;
+  background: var(--primary);
+  color: var(--pfg);
+}
+
+.inputDescuento {
+  width: 80px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 8px;
+  font: 500 11.5px/1 var(--font-mono);
+  outline: none;
+}
+
+.leyendaProbado {
+  font: 500 10.5px/1.3 var(--font-ui);
+  color: var(--badtext);
+}
+
+.leyendaDescuento {
+  font: 500 10.5px/1.3 var(--font-ui);
+  color: var(--ptext);
+}
+
+.aviso {
+  flex: none;
+  margin: 0 16px 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--psoft);
+  border: 1px solid var(--psoftb);
+  color: var(--ptext);
+  font: 400 11.5px/1.4 var(--font-ui);
+}
+
+.pie {
+  flex: none;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filaTotal {
+  display: flex;
+  justify-content: space-between;
+  font: 500 12.5px/1.4 var(--font-ui);
+  color: var(--muted);
+}
+
+.filaDescuento {
+  composes: filaTotal;
+  color: var(--ptext);
+}
+
+.separador {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 0;
+}
+
+.filaTotalFinal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.etiquetaTotal {
+  font: 600 13px/1 var(--font-ui);
+}
+
+.cifraTotal {
+  font: 700 22px/1 var(--font-mono);
+}
+
+.btnCobrar {
+  height: 46px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: var(--pfg);
+  font: 600 14.5px/1 var(--font-ui);
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.btnCobrar:disabled {
+  background: var(--chip);
+  color: var(--faint);
+  cursor: not-allowed;
+}
+
+.btnCancelar {
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font: 500 12.5px/1 var(--font-ui);
+  cursor: pointer;
+}

@@ -1,0 +1,35 @@
+/* Impresión de ticket: plantilla HTML imprimible sobre impresora térmica de
+   58 mm (ver docs/MODELO_DATOS.md — modelo confirmado: genérica POS-58,
+   USB, ESC/POS). El navegador maneja la impresión (window.print(), ver
+   TicketModal.tsx / ReciboApartado.tsx); el driver de la impresora en el
+   sistema operativo es el que traduce a la impresora física. Oculta todo
+   menos el recibo al imprimir.
+
+   `!important` es necesario: .recibo-imprimible trae un `width: 400px`
+   inline (para verse bien en pantalla como modal) que un selector normal
+   de hoja de estilos no puede sobrescribir — solo `!important` le gana a un
+   estilo inline. */
+@page {
+  size: 58mm auto;
+  margin: 0;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .recibo-imprimible,
+  .recibo-imprimible * {
+    visibility: visible;
+  }
+  .recibo-imprimible {
+    position: fixed;
+    inset: 0;
+    width: 54mm !important;
+    max-width: 54mm !important;
+    padding: 2mm !important;
+    font-size: 11px;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}

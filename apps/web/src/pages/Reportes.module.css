@@ -1,0 +1,346 @@
+.contenedor {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cargando {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--muted);
+  font: 500 14px/1 var(--font-ui);
+}
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.tituloFila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tituloFila h1 {
+  font: 700 18px/1.2 var(--font-ui);
+  margin: 0;
+}
+
+.badgeAdmin {
+  font: 600 10px/1 var(--font-mono);
+  background: var(--text);
+  color: var(--surface);
+  padding: 3px 6px;
+  border-radius: 4px;
+}
+
+.rango {
+  font: 500 12px/1.4 var(--font-mono);
+  color: var(--muted);
+}
+
+.segmented {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--chip);
+  border-radius: 9px;
+}
+
+.segmentedBtn {
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 12.5px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.segmentedBtnActivo {
+  composes: segmentedBtn;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 767px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.kpiLabel {
+  font: 500 11.5px/1.3 var(--font-ui);
+  color: var(--muted);
+}
+
+.kpiValor {
+  font: 700 26px/1.1 var(--font-mono);
+}
+
+.kpiValorPrimario {
+  composes: kpiValor;
+  color: var(--ptext);
+}
+
+.kpiValorBad {
+  font: 700 20px/1.1 var(--font-mono);
+  color: var(--badtext);
+}
+
+.kpiMeta {
+  font: 500 11.5px/1.3 var(--font-ui);
+  color: var(--faint);
+}
+
+.kpiMetaBad {
+  composes: kpiMeta;
+  color: var(--badtext);
+}
+
+.kpiUp {
+  font: 600 11.5px/1.3 var(--font-ui);
+  color: var(--oktext);
+}
+
+.kpiDown {
+  composes: kpiUp;
+  color: var(--badtext);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tituloPanelFila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tituloPanel {
+  font: 700 14px/1.2 var(--font-ui);
+  margin: 0;
+}
+
+.barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 140px;
+  padding-top: 8px;
+}
+
+.barraCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  height: 100%;
+  min-width: 0;
+}
+
+.barra {
+  width: 100%;
+  max-width: 34px;
+  border-radius: 4px 4px 0 0;
+  background: var(--chip);
+}
+
+.barraMax {
+  composes: barra;
+  background: var(--primary);
+}
+
+.barraEtiqueta {
+  font: 600 10.5px/1 var(--font-mono);
+  color: var(--faint);
+}
+
+.btnExportar {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  font: 600 12px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.btnExportar:disabled {
+  color: var(--faint);
+  cursor: not-allowed;
+}
+
+.tablaVendedores,
+.tablaInventario {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.filaEncabezado {
+  display: grid;
+  grid-template-columns: 1.6fr 0.7fr 0.9fr 0.6fr 0.9fr;
+  gap: 8px;
+  padding: 8px 4px;
+  font: 600 11px/1 var(--font-mono);
+  color: var(--faint);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--border);
+}
+
+.filaVendedor {
+  display: grid;
+  grid-template-columns: 1.6fr 0.7fr 0.9fr 0.6fr 0.9fr;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+  font: 500 13px/1.3 var(--font-ui);
+}
+
+.filaVendedor:last-child {
+  border-bottom: none;
+}
+
+.vendedorNombre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--chip);
+  display: grid;
+  place-items: center;
+  font: 600 10.5px/1 var(--font-ui);
+  flex: none;
+}
+
+.vendedorRol {
+  font: 400 10.5px/1.3 var(--font-mono);
+  color: var(--faint);
+}
+
+.comisionCifra {
+  font: 700 13px/1 var(--font-mono);
+  color: var(--ptext);
+}
+
+.filaProducto {
+  display: grid;
+  grid-template-columns: 1.8fr 0.8fr 0.8fr 0.8fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+  font: 500 13px/1.3 var(--font-ui);
+}
+
+.filaProducto:last-child {
+  border-bottom: none;
+}
+
+.productoMeta {
+  font: 400 11px/1.3 var(--font-mono);
+  color: var(--faint);
+}
+
+.accionesProducto {
+  display: flex;
+  gap: 6px;
+}
+
+.btnAccion {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  font: 600 11.5px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.btnPeligro {
+  composes: btnAccion;
+  border-color: var(--bad);
+  color: var(--badtext);
+}
+
+.vacio {
+  font: 400 12px/1.4 var(--font-ui);
+  color: var(--faint);
+  padding: 10px 4px;
+}
+
+@media (max-width: 767px) {
+  .filaEncabezado {
+    display: none;
+  }
+
+  .filaVendedor,
+  .filaProducto {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 12px 8px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  .accionesProducto {
+    margin-top: 6px;
+  }
+
+  .btnAccion,
+  .btnPeligro {
+    flex: 1;
+    height: 40px;
+  }
+}

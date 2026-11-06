@@ -1,0 +1,17 @@
+{
+  "name": "hilo-pos",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @crystal/shared --filter @crystal/web --filter @crystal/api dev",
+    "dev:web": "pnpm --filter @crystal/web dev",
+    "dev:api": "pnpm --filter @crystal/api dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "packageManager": "pnpm@12.3.4"
+}

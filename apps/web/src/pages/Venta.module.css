@@ -1,0 +1,67 @@
+.layout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.tabsMobile {
+  display: none;
+  flex: none;
+  gap: 4px;
+  padding: 8px;
+  background: var(--chip);
+}
+
+.tabBtn {
+  flex: 1;
+  height: 36px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: 600 12.5px/1 var(--font-ui);
+  cursor: pointer;
+}
+
+.tabBtnActivo {
+  composes: tabBtn;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.catalogoWrap {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+}
+
+.ticketWrap {
+  width: 420px;
+  flex: none;
+  min-height: 0;
+  border-left: 1px solid var(--border);
+}
+
+@media (max-width: 767px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .tabsMobile {
+    display: flex;
+  }
+
+  .catalogoWrap,
+  .ticketWrap {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    border-left: none;
+  }
+
+  .oculto {
+    display: none;
+  }
+}
