@@ -40,4 +40,33 @@ test.describe('Personal y accesos (Épica 1)', () => {
     await expect(page.getByText('Ahora operas como Marisol Rivas')).toBeVisible();
     await expect(page.getByText('NIP de Marisol Rivas')).not.toBeVisible();
   });
+
+  test('el admin puede cambiar el NIP de otro usuario, y el nuevo NIP funciona para entrar', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Personal');
+
+    const filaJulio = page.locator('text=Julio Tenorio').locator('..').locator('..');
+    await filaJulio.getByRole('button', { name: 'Editar', exact: true }).click();
+
+    const filaEnEdicion = page
+      .locator('div')
+      .filter({ has: page.getByRole('button', { name: 'Guardar', exact: true }) })
+      .last();
+    await filaEnEdicion.getByPlaceholder('Nuevo NIP').fill('7890');
+    await filaEnEdicion.getByRole('button', { name: 'Guardar', exact: true }).click();
+    await expect(page.getByText('Datos actualizados')).toBeVisible();
+
+    // Cerrar sesión y confirmar que el NIP nuevo entra (y el viejo 1234 ya no).
+    await page.getByRole('button', { name: 'Cambiar de usuario', exact: true }).click();
+    await page.getByRole('button', { name: 'Cerrar sesión y volver al inicio' }).click();
+
+    await page.getByRole('button', { name: /Julio Tenorio/ }).click();
+    await page.getByLabel('NIP').fill('1234');
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+    await expect(page.getByText('NIP incorrecto para Julio Tenorio')).toBeVisible();
+
+    await page.getByLabel('NIP').fill('7890');
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+    await expect(page.getByText('Bienvenida, Julio Tenorio')).toBeVisible();
+  });
 });

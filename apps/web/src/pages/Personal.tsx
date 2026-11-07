@@ -25,7 +25,7 @@ export function Personal() {
   const [enviando, setEnviando] = useState(false);
   const [pendienteEntrarComo, setPendienteEntrarComo] = useState<UsuarioSesion | null>(null);
   const [editandoId, setEditandoId] = useState<number | null>(null);
-  const [edicion, setEdicion] = useState({ nombre: '', usuario: '', tasaComision: '' });
+  const [edicion, setEdicion] = useState({ nombre: '', usuario: '', tasaComision: '', nuevoNip: '' });
   const [guardandoEdicion, setGuardandoEdicion] = useState(false);
 
   async function recargar() {
@@ -71,11 +71,15 @@ export function Personal() {
 
   function iniciarEdicion(u: UsuarioSesion) {
     setEditandoId(u.id);
-    setEdicion({ nombre: u.nombre, usuario: u.usuario, tasaComision: String(u.tasaComision) });
+    setEdicion({ nombre: u.nombre, usuario: u.usuario, tasaComision: String(u.tasaComision), nuevoNip: '' });
   }
 
   async function guardarEdicion(u: UsuarioSesion) {
     if (guardandoEdicion) return;
+    if (edicion.nuevoNip && !/^\d{4}$/.test(edicion.nuevoNip)) {
+      mostrar('El NIP debe tener 4 dígitos');
+      return;
+    }
     setGuardandoEdicion(true);
     try {
       if (edicion.nombre !== u.nombre || edicion.usuario !== u.usuario) {
@@ -84,6 +88,9 @@ export function Personal() {
       const nuevaComision = Number(edicion.tasaComision);
       if (nuevaComision !== u.tasaComision) {
         await authApi.cambiarComision(u.id, nuevaComision);
+      }
+      if (edicion.nuevoNip) {
+        await authApi.cambiarNip(u.id, edicion.nuevoNip);
       }
       await recargar();
       setEditandoId(null);
@@ -163,6 +170,16 @@ export function Personal() {
                   }
                   inputMode="decimal"
                   placeholder="%"
+                />
+                <input
+                  className={styles.input}
+                  style={{ width: 90, height: 34 }}
+                  value={edicion.nuevoNip}
+                  onChange={(e) =>
+                    setEdicion((v) => ({ ...v, nuevoNip: e.target.value.replace(/\D/g, '').slice(0, 4) }))
+                  }
+                  inputMode="numeric"
+                  placeholder="Nuevo NIP"
                 />
                 <span className={styles.acciones}>
                   <button
