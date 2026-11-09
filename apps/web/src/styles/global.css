@@ -23,6 +23,18 @@ input {
   font-family: inherit;
 }
 
+/* iOS Safari hace auto-zoom del viewport entero al enfocar un input/textarea
+   con font-size < 16px, y no siempre lo revierte limpio — se ve como que la
+   UI "salta" de proporciones ("encimado"). Varios campos del proyecto fijan
+   su tamaño con `style={{ font: ... }}` inline en TSX, que ninguna regla de
+   stylesheet externa vence sin !important; de ahí el !important aquí, en
+   vez de tocar cada input uno por uno. */
+input,
+textarea,
+select {
+  font-size: 16px !important;
+}
+
 button {
   -webkit-tap-highlight-color: transparent;
 }

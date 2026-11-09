@@ -68,4 +68,30 @@ test.describe('Reportes y comisiones (HU-5.1 a HU-5.5, HU-2.5, HU-6.5)', () => {
     const filaActualizada = page.locator('text=Ajuste stock UX test').locator('..').locator('..');
     await expect(filaActualizada.getByText('2 stock')).toBeVisible();
   });
+
+  test('el rail de navegación permanece fijo al hacer scroll dentro de Reportes', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Reportes');
+
+    const rail = page.locator('nav').nth(0);
+    const avatar = rail.getByRole('button', { name: 'Cambiar de usuario' });
+    await expect(avatar).toBeVisible();
+    const cajaAntes = await rail.boundingBox();
+
+    // Relleno forzado para garantizar scroll propio del contenedor, sin
+    // depender de cuántas filas de datos haya en la BD de prueba de este run.
+    const contenedor = page.locator('[class*="contenedor"]').first();
+    await contenedor.evaluate((el) => {
+      const relleno = document.createElement('div');
+      relleno.style.height = '3000px';
+      el.appendChild(relleno);
+    });
+    await contenedor.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+
+    await expect(avatar).toBeVisible();
+    const cajaDespues = await rail.boundingBox();
+    expect(cajaDespues).toEqual(cajaAntes);
+  });
 });

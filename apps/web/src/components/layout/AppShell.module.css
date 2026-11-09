@@ -1,6 +1,10 @@
+/* height:100% (no 100vh/100dvh): depende de html,body,#root{height:100%}
+   (global.css) en vez de unidades de viewport, que en iOS Safari se
+   recalculan en vivo cuando la barra de direcciones se expande/colapsa —
+   eso hacía que todo el layout "saltara" de alto mientras se hacía scroll. */
 .shell {
   display: flex;
-  min-height: 100vh;
+  height: 100%;
   background: var(--surface2);
 }
 
@@ -81,7 +85,10 @@
   flex: none;
   border-top: 1px solid var(--border);
   background: var(--surface);
-  padding: 8px 6px 14px;
+  /* env(safe-area-inset-bottom) = 0 en navegadores sin notch/home indicator;
+     max() asegura al menos 14px de aire también en esos casos. Requiere
+     viewport-fit=cover en index.html para que iOS lo reporte distinto de 0. */
+  padding: 8px 6px max(14px, env(safe-area-inset-bottom));
   gap: 3px;
 }
 
