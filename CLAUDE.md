@@ -136,6 +136,15 @@ backup en caliente de `better-sqlite3` (segura con WAL activo). Se conservan los
 la lista y forzar un respaldo manual desde Reportes (`GET`/`POST /api/respaldos`). No hay
 restauración por UI — es una copia de archivo manual mientras el proceso está detenido.
 
+## Credenciales de desarrollo (cambiar antes de operar en vivo)
+
+- `JWT_SECRET` no configurado → cae en el literal `'dev-secret-cambiar-en-produccion'`
+  (`src/lib/jwt.ts`). En producción se define como variable de entorno real (en el
+  Servicio de Windows, vía `nssm set CrystalPOS AppEnvironmentExtra JWT_SECRET=...`).
+- NIP demo `1234` para todos los usuarios semilla (`src/db/seed.ts`) — reemplazar por
+  NIPs reales desde Personal (botón "Editar" → campo "Nuevo NIP") antes de que el
+  personal real empiece a usar el sistema.
+
 ## Convenciones
 - UI e interfaz de usuario en español (México).
 - Tokens de color y tipografía exactamente como en `docs/README.md`.
