@@ -78,6 +78,32 @@ function ejecutarComando(comando: string, args: string[]): Promise<{ ok: boolean
 }
 
 /**
+ * Dispara el "nssm restart" en un proceso completamente aparte de este
+ * (grupo de procesos nuevo, sin stdio heredado, sin esperar su salida).
+ *
+ * Si este propio proceso Node llamara a `nssm restart` directamente y
+ * esperara su resultado, `nssm stop` (la primera mitad del restart) lo mata
+ * a él mismo a mitad de esa misma llamada — Windows puede arrastrar en esa
+ * muerte al proceso "nssm restart" que disparó, si quedó en el mismo grupo
+ * de consola, dejando el "start" sin ocurrir nunca y el servicio detenido
+ * hasta que alguien entre a PowerShell a mano. `detached: true` + `unref()`
+ * evita eso: el "ping" de espera y el "nssm restart" corren en un proceso
+ * independiente que sigue vivo aunque este proceso muera un instante
+ * después. `ping` (no `timeout`) para la espera porque `timeout` falla sin
+ * una consola real, que es justo lo que `stdio: 'ignore'` le quita aquí.
+ */
+function dispararReinicioServicio(): void {
+  const comando = `ping -n 3 127.0.0.1 >nul & nssm restart ${NOMBRE_SERVICIO}`;
+  const hijo = spawn('cmd.exe', ['/c', comando], {
+    cwd: RAIZ_REPO,
+    detached: true,
+    stdio: 'ignore',
+    windowsHide: true,
+  });
+  hijo.unref();
+}
+
+/**
  * Corre en segundo plano (no se espera su promesa desde la ruta): marca
  * "en_progreso" de inmediato para que el frontend pueda sondear el estado.
  * Si el build sale bien, el reinicio del servicio mata este proceso — por
@@ -126,12 +152,17 @@ export async function ejecutarActualizacion(dbPath: string): Promise<void> {
   info.terminadoEn = new Date().toISOString();
   guardarEstado(dbPath, info);
 
-  const reinicio = await ejecutarComando('nssm', ['restart', NOMBRE_SERVICIO]);
-  if (!reinicio.ok) {
+  // Chequeo rápido y seguro (no detiene nada): confirma que sí corre como
+  // Servicio de Windows con nssm antes de disparar el reinicio real.
+  const correComoServicio = await ejecutarComando('nssm', ['status', NOMBRE_SERVICIO]);
+  if (!correComoServicio.ok) {
     info.log.push(
       'No se pudo reiniciar el servicio automáticamente (¿no corre como Servicio de Windows con nssm?). ' +
         'La nueva versión ya está compilada: reinicia el servicio manualmente.',
     );
     guardarEstado(dbPath, info);
+    return;
   }
+
+  dispararReinicioServicio();
 }

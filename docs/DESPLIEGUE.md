@@ -117,6 +117,8 @@ nssm remove CrystalPOS confirm   # desinstalar el servicio (no borra los datos)
 
 ## 6. Actualizar el sistema más adelante
 
+Manual, desde PowerShell:
+
 ```powershell
 cd C:\CrystalPOS
 git pull
@@ -124,6 +126,14 @@ pnpm install
 pnpm build
 nssm restart CrystalPOS
 ```
+
+O con el botón "Buscar actualizaciones" de Reportes (solo Admin), que corre exactamente
+esos pasos — el dueño del negocio nunca necesita abrir PowerShell para esto.
+`apps/api/src/services/actualizacion.service.ts` dispara el `nssm restart` final en un
+proceso Windows separado (detached, grupo de procesos propio) en vez de esperarlo desde
+el propio proceso de la API: el `nssm stop` de ese restart mata al proceso que lo pidió,
+así que si se esperara desde ahí mismo, el `start` podía no llegar a ocurrir y el
+servicio quedaba detenido hasta un `nssm start` manual.
 
 ## 7. Dónde viven los datos
 
