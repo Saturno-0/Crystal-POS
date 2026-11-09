@@ -137,6 +137,72 @@ describe('crear (HU-2.1 / HU-2.2)', () => {
   });
 });
 
+describe('crearLotePorTallas', () => {
+  it('crea una fila por talla con cantidades distintas', () => {
+    const creados = productos.crearLotePorTallas(
+      db,
+      {
+        nombre: 'Jean recto',
+        marca: 'Ciclón',
+        categoriaId: mezclillaId,
+        precio: 590,
+        cantidades: { '1': 3, '3': 5, '5': 0, '7': 8 },
+      },
+      ACTOR_ID,
+    );
+    expect(creados).toHaveLength(3);
+    expect(creados.map((p) => p.talla).sort()).toEqual(['1', '3', '7']);
+    expect(creados.find((p) => p.talla === '7')?.stock).toBe(8);
+    const skus = new Set(creados.map((p) => p.sku));
+    expect(skus.size).toBe(3);
+  });
+
+  it('aplica el mismo precio y nombre a todas las tallas del lote', () => {
+    const creados = productos.crearLotePorTallas(
+      db,
+      {
+        nombre: 'Blusa lino',
+        marca: 'Zara',
+        categoriaId: blusasId,
+        precio: 420,
+        cantidades: { M: 2, L: 4 },
+      },
+      ACTOR_ID,
+    );
+    expect(creados.every((p) => p.nombre === 'Blusa lino' && p.precio === 420)).toBe(true);
+  });
+
+  it('rechaza una talla inválida para la categoría', () => {
+    expect(() =>
+      productos.crearLotePorTallas(
+        db,
+        { nombre: 'Jean recto', marca: 'Ciclón', categoriaId: mezclillaId, precio: 590, cantidades: { '2': 3 } },
+        ACTOR_ID,
+      ),
+    ).toThrow('Selecciona una talla válida para esta categoría');
+  });
+
+  it('rechaza categorías sin talla (vestidos)', () => {
+    expect(() =>
+      productos.crearLotePorTallas(
+        db,
+        { nombre: 'Vestido gala', marca: 'Cklass', categoriaId: vestidosId, precio: 899, cantidades: { Única: 2 } },
+        ACTOR_ID,
+      ),
+    ).toThrow('Esta categoría no maneja tallas');
+  });
+
+  it('rechaza si no hay ninguna cantidad mayor a cero', () => {
+    expect(() =>
+      productos.crearLotePorTallas(
+        db,
+        { nombre: 'Jean recto', marca: 'Ciclón', categoriaId: mezclillaId, precio: 590, cantidades: { '1': 0 } },
+        ACTOR_ID,
+      ),
+    ).toThrow('Captura al menos una cantidad por talla');
+  });
+});
+
 describe('listar (HU-2.6)', () => {
   it('filtra por búsqueda de nombre, marca o SKU', () => {
     productos.crear(
@@ -219,5 +285,47 @@ describe('editar', () => {
     );
     const editado = productos.editar(db, p.id, { precio: 450 }, ACTOR_ID);
     expect(editado.precio).toBe(450);
+  });
+
+  it('permite corregir la cantidad en inventario', () => {
+    const p = productos.crear(
+      db,
+      { nombre: 'Blusa lino', marca: 'Zara', categoriaId: blusasId, talla: 'M', precio: 420, cantidad: 10 },
+      ACTOR_ID,
+    );
+    const editado = productos.editar(db, p.id, { stock: 7 }, ACTOR_ID);
+    expect(editado.stock).toBe(7);
+  });
+
+  it('mantiene el stock actual si no se envía en los cambios', () => {
+    const p = productos.crear(
+      db,
+      { nombre: 'Blusa lino', marca: 'Zara', categoriaId: blusasId, talla: 'M', precio: 420, cantidad: 10 },
+      ACTOR_ID,
+    );
+    const editado = productos.editar(db, p.id, { precio: 450 }, ACTOR_ID);
+    expect(editado.stock).toBe(10);
+  });
+
+  it('rechaza una cantidad de inventario negativa', () => {
+    const p = productos.crear(
+      db,
+      { nombre: 'Blusa lino', marca: 'Zara', categoriaId: blusasId, talla: 'M', precio: 420 },
+      ACTOR_ID,
+    );
+    expect(() => productos.editar(db, p.id, { stock: -1 }, ACTOR_ID)).toThrow(
+      'Captura una cantidad de inventario válida',
+    );
+  });
+
+  it('rechaza una cantidad de inventario no entera', () => {
+    const p = productos.crear(
+      db,
+      { nombre: 'Blusa lino', marca: 'Zara', categoriaId: blusasId, talla: 'M', precio: 420 },
+      ACTOR_ID,
+    );
+    expect(() => productos.editar(db, p.id, { stock: 2.5 }, ACTOR_ID)).toThrow(
+      'Captura una cantidad de inventario válida',
+    );
   });
 });

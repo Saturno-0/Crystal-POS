@@ -176,10 +176,90 @@ export function crear(db: Database.Database, input: CrearProductoInput, actorId:
   );
 }
 
+export interface CrearLotePorTallasInput {
+  nombre: string;
+  marca: string;
+  categoriaId: number;
+  precio: number;
+  cantidades: Record<string, number>;
+  descuentoTipo?: TipoDescuento;
+  descuentoValor?: number;
+}
+
+// Alta rápida para prendas idénticas salvo talla (ej. mismo pantalón en varias
+// tallas): una fila/SKU por talla, todas con el mismo nombre/marca/precio/descuento.
+export function crearLotePorTallas(
+  db: Database.Database,
+  input: CrearLotePorTallasInput,
+  actorId: number,
+) {
+  const nombre = input.nombre?.trim();
+  const marca = input.marca?.trim();
+  if (!nombre) throw new ValidationError('Captura el nombre del producto');
+  if (!marca) throw new ValidationError('Captura la marca');
+  if (!Number.isFinite(input.precio) || input.precio <= 0) {
+    throw new ValidationError('Captura un precio válido');
+  }
+
+  const categoria = buscarCategoria(db, input.categoriaId);
+  if (categoria.tipo_talla === 'sin_talla') {
+    throw new ValidationError('Esta categoría no maneja tallas');
+  }
+  const descuento = normalizarDescuentoVestido(categoria, input.descuentoTipo, input.descuentoValor);
+
+  const entradas = Object.entries(input.cantidades ?? {}).filter(([, cantidad]) => cantidad > 0);
+  if (entradas.length === 0) {
+    throw new ValidationError('Captura al menos una cantidad por talla');
+  }
+  for (const [talla, cantidad] of entradas) {
+    normalizarTalla(categoria, talla);
+    if (!Number.isInteger(cantidad) || cantidad < 1) {
+      throw new ValidationError(`Cantidad inválida para la talla ${talla}`);
+    }
+  }
+
+  const ejecutar = db.transaction(() =>
+    entradas.map(([talla, cantidad]) => {
+      const sku = generarSku(db, marca, categoria.nombre);
+      const result = db
+        .prepare(
+          `INSERT INTO productos (sku, nombre, marca, categoria_id, talla, precio, stock, descuento_tipo, descuento_valor)
+           VALUES (@sku, @nombre, @marca, @categoriaId, @talla, @precio, @stock, @descuentoTipo, @descuentoValor)`,
+        )
+        .run({
+          sku,
+          nombre,
+          marca,
+          categoriaId: categoria.id,
+          talla,
+          precio: input.precio,
+          stock: cantidad,
+          descuentoTipo: descuento.descuentoTipo,
+          descuentoValor: descuento.descuentoValor,
+        });
+
+      registrarAuditoria(db, {
+        usuarioId: actorId,
+        accion: 'producto.crear',
+        entidad: 'producto',
+        entidadId: Number(result.lastInsertRowid),
+        detalle: { sku, nombre, talla, cantidad },
+      });
+
+      return aPublico(
+        db.prepare('SELECT * FROM productos WHERE id = ?').get(result.lastInsertRowid) as ProductoRow,
+      );
+    }),
+  );
+
+  return ejecutar();
+}
+
 export interface EditarProductoInput {
   nombre?: string;
   marca?: string;
   precio?: number;
+  stock?: number;
   descuentoTipo?: TipoDescuento | null;
   descuentoValor?: number | null;
 }
@@ -195,10 +275,14 @@ export function editar(
   const nombre = cambios.nombre !== undefined ? cambios.nombre.trim() : actual.nombre;
   const marca = cambios.marca !== undefined ? cambios.marca.trim() : actual.marca;
   const precio = cambios.precio !== undefined ? cambios.precio : actual.precio;
+  const stock = cambios.stock !== undefined ? cambios.stock : actual.stock;
   if (!nombre) throw new ValidationError('Captura el nombre del producto');
   if (!marca) throw new ValidationError('Captura la marca');
   if (!Number.isFinite(precio) || precio <= 0) {
     throw new ValidationError('Captura un precio válido');
+  }
+  if (!Number.isInteger(stock) || stock < 0) {
+    throw new ValidationError('Captura una cantidad de inventario válida');
   }
 
   const categoria = buscarCategoria(db, actual.categoria_id);
@@ -208,7 +292,7 @@ export function editar(
     : { descuentoTipo: actual.descuento_tipo, descuentoValor: actual.descuento_valor };
 
   db.prepare(
-    `UPDATE productos SET nombre=@nombre, marca=@marca, precio=@precio,
+    `UPDATE productos SET nombre=@nombre, marca=@marca, precio=@precio, stock=@stock,
        descuento_tipo=@descuentoTipo, descuento_valor=@descuentoValor, updated_at=datetime('now')
      WHERE id=@id`,
   ).run({
@@ -216,6 +300,7 @@ export function editar(
     nombre,
     marca,
     precio,
+    stock,
     descuentoTipo: descuento.descuentoTipo,
     descuentoValor: descuento.descuentoValor,
   });
@@ -225,6 +310,7 @@ export function editar(
     accion: 'producto.editar',
     entidad: 'producto',
     entidadId: id,
+    detalle: stock !== actual.stock ? { stockAnterior: actual.stock, stockNuevo: stock } : undefined,
   });
 
   return aPublico(db.prepare('SELECT * FROM productos WHERE id = ?').get(id) as ProductoRow);

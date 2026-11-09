@@ -41,4 +41,31 @@ test.describe('Reportes y comisiones (HU-5.1 a HU-5.5, HU-2.5, HU-6.5)', () => {
     await expect(page.getByText('Respaldo creado')).toBeVisible();
     await expect(page.getByText(/Último respaldo:/)).toBeVisible();
   });
+
+  test('inventario: corregir la cantidad de un producto desde Editar', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await crearProducto(page, {
+      nombre: 'Ajuste stock UX test',
+      marca: 'TestMarca',
+      precio: 300,
+      categoria: 'Blusas',
+      talla: 'M',
+      lote: true,
+    });
+
+    await irA(page, 'Reportes');
+    const filaProducto = page.locator('text=Ajuste stock UX test').locator('..').locator('..');
+    await expect(filaProducto.getByText('5 stock')).toBeVisible();
+
+    await filaProducto.getByRole('button', { name: 'Editar', exact: true }).click();
+    await expect(page.getByText(/Editando/)).toBeVisible();
+    await expect(page.getByLabel('Cantidad en inventario')).toHaveValue('5');
+    await page.getByLabel('Cantidad en inventario').fill('2');
+    await page.getByRole('button', { name: 'Guardar cambios' }).click();
+    await expect(page.getByText('Ajuste stock UX test actualizado')).toBeVisible();
+
+    await irA(page, 'Reportes');
+    const filaActualizada = page.locator('text=Ajuste stock UX test').locator('..').locator('..');
+    await expect(filaActualizada.getByText('2 stock')).toBeVisible();
+  });
 });

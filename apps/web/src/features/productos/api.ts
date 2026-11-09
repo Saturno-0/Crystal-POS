@@ -47,10 +47,28 @@ export function crearProducto(input: CrearProductoInput) {
   });
 }
 
+export interface CrearLotePorTallasInput {
+  nombre: string;
+  marca: string;
+  categoriaId: number;
+  precio: number;
+  cantidades: Record<string, number>;
+  descuentoTipo?: TipoDescuento;
+  descuentoValor?: number;
+}
+
+export function crearLotePorTallas(input: CrearLotePorTallasInput) {
+  return apiFetch<Producto[]>('/api/productos/lote-tallas', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
 export interface EditarProductoInput {
   nombre?: string;
   marca?: string;
   precio?: number;
+  stock?: number;
   descuentoTipo?: TipoDescuento | null;
   descuentoValor?: number | null;
 }

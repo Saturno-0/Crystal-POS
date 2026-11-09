@@ -54,4 +54,58 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await page.getByRole('button', { name: 'Dar de alta 1 pieza' }).click();
     await expect(page.getByText(/Pieza única dada de alta · SKU/)).toBeVisible();
   });
+
+  test('alta por tallas crea una fila por talla con el mismo precio', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Alta');
+
+    await page.getByPlaceholder('Ej. Jean recto tiro alto').fill('Pantalon Ciclon UX test');
+    await page.getByPlaceholder('Marca').fill('Ciclon');
+    await page.getByPlaceholder('$0.00').fill('350');
+    await page.getByRole('button', { name: 'Mezclilla', exact: true }).click();
+
+    await page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }).click();
+    await expect(page.getByLabel('Cantidad talla 1', { exact: true })).toBeVisible();
+
+    await page.getByLabel('Cantidad talla 1', { exact: true }).fill('3');
+    await page.getByLabel('Cantidad talla 3', { exact: true }).fill('5');
+    await expect(page.getByText('Total: 8 piezas')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Dar de alta 8 piezas' }).click();
+    await expect(page.getByText('8 piezas dadas de alta en 2 tallas')).toBeVisible();
+
+    await irA(page, 'Venta');
+    await page.getByPlaceholder('Buscar nombre, marca o SKU…').fill('Pantalon Ciclon UX test');
+    await expect(page.getByText('talla 1')).toBeVisible();
+    await expect(page.getByText('talla 3')).toBeVisible();
+  });
+
+  test('alta por tallas: el botón de confirmar queda deshabilitado sin cantidades', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Alta');
+
+    await page.getByPlaceholder('Ej. Jean recto tiro alto').fill('Pantalon vacio UX test');
+    await page.getByPlaceholder('Marca').fill('Ciclon');
+    await page.getByPlaceholder('$0.00').fill('350');
+    await page.getByRole('button', { name: 'Mezclilla', exact: true }).click();
+    await page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }).click();
+
+    await expect(page.getByRole('button', { name: 'Dar de alta 0 piezas' })).toBeDisabled();
+    await page.getByRole('button', { name: 'Cancelar' }).click();
+    await expect(page.getByLabel('Cantidad talla 1', { exact: true })).not.toBeVisible();
+  });
+
+  test('alta por tallas no aparece para vestidos (sin_talla)', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Alta');
+
+    await page.getByPlaceholder('Ej. Jean recto tiro alto').fill('Vestido sin boton UX test');
+    await page.getByPlaceholder('Marca').fill('TestMarca');
+    await page.getByPlaceholder('$0.00').fill('800');
+    await page.getByRole('button', { name: 'Vestidos', exact: true }).click();
+
+    await expect(
+      page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }),
+    ).not.toBeVisible();
+  });
 });

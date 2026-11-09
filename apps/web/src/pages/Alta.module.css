@@ -225,6 +225,17 @@
   cursor: not-allowed;
 }
 
+.btnLotePorTallas {
+  height: 40px;
+  border: 1px dashed var(--psoftb);
+  border-radius: 8px;
+  background: var(--psoft);
+  color: var(--ptext);
+  font: 600 12.5px/1 var(--font-ui);
+  cursor: pointer;
+  flex: none;
+}
+
 .btnLimpiar {
   height: 40px;
   border: none;

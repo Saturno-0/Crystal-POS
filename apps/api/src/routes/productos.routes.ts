@@ -27,6 +27,16 @@ router.post('/', authenticate, (req, res) => {
   }
 });
 
+// Alta por tallas: mismo modelo/precio repartido en varias tallas en un solo paso.
+router.post('/lote-tallas', authenticate, (req, res) => {
+  try {
+    const creados = productosService.crearLotePorTallas(db, req.body ?? {}, req.sesion!.sub);
+    res.status(201).json(creados);
+  } catch (err) {
+    handleError(res, err);
+  }
+});
+
 // Editar/eliminar catálogo: solo Admin (HU-2.5).
 router.patch('/:id', authenticate, requireRole('admin'), (req, res) => {
   try {

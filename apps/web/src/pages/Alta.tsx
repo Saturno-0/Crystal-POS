@@ -6,6 +6,7 @@ import * as productosApi from '../features/productos/api';
 import { ApiError } from '../lib/apiClient';
 import styles from './Alta.module.css';
 import { GestionCategorias } from './GestionCategorias';
+import { ModalLotePorTallas } from './ModalLotePorTallas';
 
 const PRESETS_LOTE = [5, 10, 20];
 
@@ -42,7 +43,9 @@ export function Alta({
     null,
   );
   const [cantidad, setCantidad] = useState(5);
+  const [stockEditado, setStockEditado] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [modalTallasAbierto, setModalTallasAbierto] = useState(false);
 
   const cargarCategorias = useCallback((mantenerSeleccion: boolean) => {
     productosApi.listarCategorias().then((lista) => {
@@ -65,13 +68,15 @@ export function Alta({
 
   // Precarga el formulario al entrar en modo edición (HU-2.5, desde Reportes).
   // La categoría y la talla no son editables: el backend solo permite cambiar
-  // nombre, marca, precio y descuento de vestido (ver productos.service.ts).
+  // nombre, marca, precio, cantidad en inventario y descuento de vestido
+  // (ver productos.service.ts).
   useEffect(() => {
     if (!productoEnEdicion) return;
     setModo('unica');
     setNombre(productoEnEdicion.nombre);
     setMarca(productoEnEdicion.marca);
     setPrecio(String(productoEnEdicion.precio));
+    setStockEditado(String(productoEnEdicion.stock));
     setCategoriaId(productoEnEdicion.categoriaId);
     setTalla(productoEnEdicion.talla ?? '');
     setDescuentoVestido(
@@ -111,6 +116,10 @@ export function Alta({
       return mostrar('Captura un precio válido');
     }
     if (!categoriaId) return mostrar('Selecciona una categoría');
+    const stockNumero = Number(stockEditado);
+    if (editando && (!stockEditado || !Number.isInteger(stockNumero) || stockNumero < 0)) {
+      return mostrar('Captura una cantidad de inventario válida');
+    }
 
     setEnviando(true);
     try {
@@ -119,6 +128,7 @@ export function Alta({
           nombre: nombre.trim(),
           marca: marca.trim(),
           precio: precioNumero,
+          stock: stockNumero,
           descuentoTipo: descuentoVestido?.tipo ?? null,
           descuentoValor: descuentoVestido?.valor ?? null,
         });
@@ -151,6 +161,41 @@ export function Alta({
   }
 
   const skuPreview = `${prefijoSku(marca, 3)}-${prefijoSku(categoria?.nombre ?? '', 2)}-•••••`;
+
+  function abrirModalTallas() {
+    if (!nombre.trim()) return mostrar('Captura el nombre del producto');
+    const precioNumero = Number(precio);
+    if (!precio || !Number.isFinite(precioNumero) || precioNumero <= 0) {
+      return mostrar('Captura un precio válido');
+    }
+    if (!categoriaId) return mostrar('Selecciona una categoría');
+    setModalTallasAbierto(true);
+  }
+
+  async function enviarLotePorTallas(cantidades: Record<string, number>) {
+    if (enviando || !categoriaId) return;
+    const precioNumero = Number(precio);
+    setEnviando(true);
+    try {
+      const creados = await productosApi.crearLotePorTallas({
+        nombre: nombre.trim(),
+        marca: marca.trim(),
+        categoriaId,
+        precio: precioNumero,
+        cantidades,
+        descuentoTipo: descuentoVestido?.tipo,
+        descuentoValor: descuentoVestido?.valor,
+      });
+      const totalPiezas = creados.reduce((acc, p) => acc + p.stock, 0);
+      mostrar(`${totalPiezas} piezas dadas de alta en ${creados.length} tallas`);
+      setModalTallasAbierto(false);
+      limpiar();
+    } catch (err) {
+      mostrar(err instanceof ApiError ? err.message : 'No se pudo guardar el lote por tallas');
+    } finally {
+      setEnviando(false);
+    }
+  }
 
   return (
     <div className={styles.contenedor}>
@@ -209,6 +254,19 @@ export function Alta({
               placeholder="$0.00"
             />
           </div>
+          {editando && (
+            <div className={styles.campo}>
+              <label className={styles.label}>Cantidad en inventario</label>
+              <input
+                aria-label="Cantidad en inventario"
+                className={styles.inputPrecio}
+                value={stockEditado}
+                onChange={(e) => setStockEditado(e.target.value.replace(/[^0-9]/g, ''))}
+                inputMode="numeric"
+                placeholder="0"
+              />
+            </div>
+          )}
         </div>
 
         <div className={styles.campo}>
@@ -254,6 +312,12 @@ export function Alta({
             </div>
           )}
         </div>
+
+        {!editando && !esVestido && (
+          <button type="button" className={styles.btnLotePorTallas} onClick={abrirModalTallas}>
+            Alta por tallas (varias cantidades a la vez)
+          </button>
+        )}
 
         {esVestido && (
           <div className={styles.campo}>
@@ -333,6 +397,15 @@ export function Alta({
           {editando ? 'Cancelar edición' : 'Limpiar formulario'}
         </button>
       </div>
+
+      {modalTallasAbierto && opcionesTalla && (
+        <ModalLotePorTallas
+          tallas={opcionesTalla}
+          enviando={enviando}
+          onCerrar={() => setModalTallasAbierto(false)}
+          onConfirmar={enviarLotePorTallas}
+        />
+      )}
     </div>
   );
 }
