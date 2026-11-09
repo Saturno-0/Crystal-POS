@@ -50,12 +50,22 @@ funciona, cierra esta ventana (Ctrl+C) y continúa al paso 4.
 ipconfig
 ```
 
-Busca la "Dirección IPv4" del adaptador de red (wifi o Ethernet) que usa la tienda, por
-ejemplo `192.168.1.50`. **Fija esa IP en el router** (reserva DHCP por dirección MAC) para
-que no cambie — si cambia, el celular dejaría de encontrar la laptop hasta que alguien
-vuelva a revisar la IP y la reconfigure en el teléfono.
+Busca la "Dirección IPv4" del adaptador de red (wifi o Ethernet) que usa la tienda. La IP
+real fijada en la laptop de la tienda es **`192.168.1.200`**.
 
-El personal entra desde su celular abriendo `http://192.168.1.50:3001` en el navegador
+Idealmente esa IP se fija por **reserva DHCP en el router** (por dirección MAC), pero el
+router de la tienda (ZTE F679L, firmware de Megacable) no expone esa opción en su panel
+web — solo estadísticas de LAN, sin configuración de DHCP/reserva. Por eso la IP se fijó
+**manualmente en el adaptador de red de Windows** (IP estática `192.168.1.200`, máscara
+`255.255.255.0`, gateway `192.168.1.1`, DNS `192.168.1.1` y `8.8.8.8` como alterno; sin DNS
+sobre HTTPS, porque el router no lo soporta). Se eligió un rango alto (`.200`) porque los
+dispositivos que reparte el DHCP del router usan números bajos (`.5`–`.20` aprox.), para
+minimizar el riesgo de que el DHCP asigne esa misma IP a otro dispositivo.
+
+Si esto llegara a cambiar (reinstalación de Windows, cambio de router, etc.), repite esa
+configuración manual — no hay reserva automática de por medio.
+
+El personal entra desde su celular abriendo `http://192.168.1.200:3001` en el navegador
 (agregarlo como marcador/acceso directo en el celular ahorra tener que escribirlo cada
 vez).
 
@@ -87,7 +97,7 @@ se acuerde de "prender el programa", instálalo como **Servicio de Windows** con
    nssm start CrystalPOS
    ```
 5. Verifica desde la laptop: `http://localhost:3001`. Y desde un celular en la misma red:
-   `http://192.168.1.50:3001` (con tu IP real).
+   `http://192.168.1.200:3001`.
 
 A partir de aquí, el servicio:
 - **Arranca solo cuando prende la laptop** (antes incluso de iniciar sesión en Windows), así

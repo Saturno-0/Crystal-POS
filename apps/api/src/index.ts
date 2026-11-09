@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { db, dbPath } from './db/client.js';
 import { iniciarRespaldosAutomaticos } from './db/respaldoScheduler.js';
+import actualizacionRoutes from './routes/actualizacion.routes.js';
 import apartadosRoutes from './routes/apartados.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import cambiosRoutes from './routes/cambios.routes.js';
@@ -14,6 +15,7 @@ import reportesRoutes from './routes/reportes.routes.js';
 import respaldosRoutes from './routes/respaldos.routes.js';
 import usuariosRoutes from './routes/usuarios.routes.js';
 import ventasRoutes from './routes/ventas.routes.js';
+import { repararEstadoAlArrancar } from './services/actualizacion.service.js';
 
 const app = express();
 app.use(cors({ exposedHeaders: ['X-Renewed-Token'] }));
@@ -35,6 +37,7 @@ app.use('/api/apartados', apartadosRoutes);
 app.use('/api/cambios', cambiosRoutes);
 app.use('/api/reportes', reportesRoutes);
 app.use('/api/respaldos', respaldosRoutes);
+app.use('/api/actualizacion', actualizacionRoutes);
 
 // Producción (laptop de la tienda): servir el build de apps/web desde este
 // mismo puerto, para que un celular en la LAN solo necesite
@@ -56,3 +59,4 @@ app.listen(port, () => {
 });
 
 iniciarRespaldosAutomaticos(db, dbPath);
+repararEstadoAlArrancar(dbPath);

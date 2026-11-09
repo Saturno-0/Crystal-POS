@@ -1,6 +1,8 @@
 import type { Producto } from '@crystal/shared';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useToast } from '../components/feedback/ToastProvider';
+import * as actualizacionApi from '../features/actualizacion/api';
+import type { InfoActualizacion } from '../features/actualizacion/api';
 import * as productosApi from '../features/productos/api';
 import * as reportesApi from '../features/reportes/api';
 import type { Periodo, Reporte } from '../features/reportes/api';
@@ -38,6 +40,8 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
   const [exportando, setExportando] = useState(false);
   const [respaldos, setRespaldos] = useState<Respaldo[]>([]);
   const [respaldando, setRespaldando] = useState(false);
+  const [actualizacion, setActualizacion] = useState<InfoActualizacion | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     let vigente = true;
@@ -59,6 +63,50 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
   useEffect(() => {
     respaldosApi.listarRespaldos().then(setRespaldos).catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    actualizacionApi
+      .obtenerEstadoActualizacion()
+      .then((info) => {
+        setActualizacion(info);
+        if (info.estado === 'en_progreso') sondearActualizacion();
+      })
+      .catch(() => undefined);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function sondearActualizacion() {
+    if (pollRef.current) return;
+    pollRef.current = setInterval(() => {
+      actualizacionApi
+        .obtenerEstadoActualizacion()
+        .then((info) => {
+          setActualizacion(info);
+          if (info.estado !== 'en_progreso' && pollRef.current) {
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+          }
+        })
+        // El servicio se reinicia solo a mitad del proceso (nssm restart):
+        // los errores de red mientras tanto son esperados, se ignoran y se
+        // sigue reintentando hasta que vuelva a responder.
+        .catch(() => undefined);
+    }, 2000);
+  }
+
+  async function actualizarSistema() {
+    if (actualizacion?.estado === 'en_progreso') return;
+    try {
+      const info = await actualizacionApi.iniciarActualizacion();
+      setActualizacion(info);
+      sondearActualizacion();
+    } catch (err) {
+      mostrar(err instanceof ApiError ? err.message : 'No se pudo iniciar la actualización');
+    }
+  }
 
   async function respaldarAhora() {
     if (respaldando) return;
@@ -234,6 +282,38 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
               ))}
             </div>
           </>
+        )}
+      </div>
+
+      <div className={styles.panel}>
+        <div className={styles.tituloPanelFila}>
+          <h2 className={styles.tituloPanel}>Actualizar sistema</h2>
+          <button
+            type="button"
+            className={styles.btnExportar}
+            onClick={actualizarSistema}
+            disabled={actualizacion?.estado === 'en_progreso'}
+          >
+            {actualizacion?.estado === 'en_progreso' ? 'Actualizando…' : 'Buscar actualización'}
+          </button>
+        </div>
+        {actualizacion?.estado === 'en_progreso' && (
+          <div className={styles.rango}>{actualizacion.pasoActual ?? 'Trabajando…'}</div>
+        )}
+        {actualizacion?.estado === 'completado' && actualizacion.terminadoEn && (
+          <div className={styles.rango}>
+            Última actualización completada: {formatoFechaHora.format(new Date(actualizacion.terminadoEn))}
+          </div>
+        )}
+        {actualizacion?.estado === 'error' && (
+          <div className={styles.kpiMetaBad}>
+            La última actualización falló — el sistema sigue en la versión anterior, sin cambios.
+          </div>
+        )}
+        {actualizacion && actualizacion.log.length > 0 && (
+          <pre className={styles.tablaInventario} style={{ padding: 12, whiteSpace: 'pre-wrap', fontSize: 12 }}>
+            {actualizacion.log.join('\n')}
+          </pre>
         )}
       </div>
 
