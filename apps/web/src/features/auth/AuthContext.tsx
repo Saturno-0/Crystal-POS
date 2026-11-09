@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -67,9 +68,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Sesión deslizante: cada respuesta autenticada trae un token renovado
-  // (20 min desde la última actividad); lo persistimos para no perderlo.
+  // (20 min desde la última actividad); lo persistimos para no perderlo, y
+  // marcamos la hora de renovación para el heartbeat de actividad de abajo.
+  const ultimaRenovacionRef = useRef(Date.now());
   useEffect(() => {
     setTokenRenewedListener((token) => {
+      ultimaRenovacionRef.current = Date.now();
       setSesion((actual) => {
         if (!actual) return actual;
         const actualizada = { ...actual, token };
@@ -79,6 +83,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => setTokenRenewedListener(null);
   }, []);
+
+  // Mantiene viva la sesión durante uso real que no dispara por sí solo
+  // ninguna llamada a la API (p. ej. armar una venta en el carrito es solo
+  // estado local en React). Sin esto, el JWT expira a los 20 min aunque el
+  // usuario esté interactuando con la pantalla, porque backend y frontend
+  // solo entendían "actividad" como tráfico HTTP. Throttled a lo mucho
+  // cada 2 min para no saturar con un ping por cada tecla o clic.
+  useEffect(() => {
+    if (!sesion) return undefined;
+    const UMBRAL_MS = 2 * 60 * 1000;
+
+    function enActividad() {
+      if (Date.now() - ultimaRenovacionRef.current < UMBRAL_MS) return;
+      ultimaRenovacionRef.current = Date.now();
+      authApi.heartbeat().catch(() => {
+        // Best-effort: si la sesión ya expiró, el próximo request real
+        // recibirá un 401 y seguirá el flujo normal de cierre de sesión.
+      });
+    }
+
+    const eventos = ['mousedown', 'keydown', 'touchstart', 'wheel'] as const;
+    eventos.forEach((evento) => window.addEventListener(evento, enActividad, { passive: true }));
+    return () => {
+      eventos.forEach((evento) => window.removeEventListener(evento, enActividad));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!sesion]);
 
   // Cierra sesión sola si el token expiró por inactividad (20 min).
   useEffect(() => {

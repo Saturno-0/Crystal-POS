@@ -50,6 +50,10 @@ export async function apiDownload(path: string, nombreArchivo: string): Promise<
   const headers = new Headers();
   if (token) headers.set('Authorization', `Bearer ${token}`);
   const res = await fetch(`${BASE_URL}${path}`, { headers });
+
+  const renewed = res.headers.get('X-Renewed-Token');
+  if (renewed) onTokenRenewed?.(renewed);
+
   if (!res.ok) {
     const data = await res.json().catch(() => null);
     throw new ApiError(data?.error ?? 'No se pudo descargar el archivo', res.status);

@@ -24,6 +24,10 @@ export function cambiarSesion(usuarioId: number, nip?: string) {
   });
 }
 
+export function heartbeat() {
+  return apiFetch<void>('/api/auth/heartbeat', { method: 'POST' });
+}
+
 export function recuperarNip(usuario: string, respuestaSeguridad: string, nuevoNip: string) {
   return apiFetch<void>('/api/auth/recuperar-nip', {
     method: 'POST',

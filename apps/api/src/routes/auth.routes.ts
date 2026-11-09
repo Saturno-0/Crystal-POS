@@ -38,6 +38,15 @@ router.post('/switch', authenticate, (req, res) => {
   }
 });
 
+// Renueva la sesión sin otra acción de negocio (ver AuthContext.tsx en el
+// front): el middleware `authenticate` ya reemite X-Renewed-Token en toda
+// request autenticada, así que esta ruta solo le da al cliente algo barato
+// que llamar cuando hay actividad real del usuario pero ninguna otra
+// llamada a la API en curso (p. ej. armando una venta en el carrito).
+router.post('/heartbeat', authenticate, (_req, res) => {
+  res.status(204).end();
+});
+
 router.post('/recuperar-nip', (req, res) => {
   const { usuario, respuestaSeguridad, nuevoNip } = req.body ?? {};
   if (
