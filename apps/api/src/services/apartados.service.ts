@@ -1,4 +1,4 @@
-import { calcularLinea, calcularTotales } from '@crystal/shared';
+import { calcularLinea, calcularTotales, nombreConColor } from '@crystal/shared';
 import type Database from 'better-sqlite3';
 import type { TipoDescuento } from '@crystal/shared';
 import { NotFoundError, ValidationError } from '../lib/errors.js';
@@ -7,6 +7,7 @@ import { registrar as registrarAuditoria } from './auditoria.service.js';
 interface ProductoRow {
   id: number;
   nombre: string;
+  color: string | null;
   precio: number;
   stock: number;
   descuento_tipo: TipoDescuento | null;
@@ -59,7 +60,7 @@ export function crear(db: Database.Database, input: CrearApartadoInput, actorId:
       }
       const producto = db
         .prepare(
-          'SELECT id, nombre, precio, stock, descuento_tipo, descuento_valor FROM productos WHERE id = ? AND activo = 1',
+          'SELECT id, nombre, color, precio, stock, descuento_tipo, descuento_valor FROM productos WHERE id = ? AND activo = 1',
         )
         .get(linea.productoId) as ProductoRow | undefined;
       if (!producto) throw new ValidationError('Producto no encontrado');
@@ -173,7 +174,7 @@ export function crear(db: Database.Database, input: CrearApartadoInput, actorId:
       resta: totales.total - input.abonoInicial,
       venceAt: venceAt.vence_at,
       lineas: resultados.map(({ linea, producto }) => ({
-        nombre: producto.nombre,
+        nombre: nombreConColor(producto.nombre, producto.color),
         cantidad: linea.cantidad,
         probado: !!linea.probado,
       })),
@@ -216,7 +217,7 @@ export function listarActivos(db: Database.Database) {
 
   const ahora = new Date();
   const lineasStmt = db.prepare(
-    `SELECT vl.producto_id AS productoId, p.nombre, vl.cantidad, vl.probado
+    `SELECT vl.producto_id AS productoId, p.nombre, p.color, vl.cantidad, vl.probado
      FROM venta_lineas vl JOIN productos p ON p.id = vl.producto_id
      WHERE vl.venta_id = ?`,
   );
@@ -234,12 +235,15 @@ export function listarActivos(db: Database.Database) {
       venceAt: row.vence_at,
       salud: estadoSalud,
       diasRestantes,
-      articulos: lineasStmt.all(row.venta_id) as {
-        productoId: number;
-        nombre: string;
-        cantidad: number;
-        probado: number;
-      }[],
+      articulos: (
+        lineasStmt.all(row.venta_id) as {
+          productoId: number;
+          nombre: string;
+          color: string | null;
+          cantidad: number;
+          probado: number;
+        }[]
+      ).map(({ color, ...a }) => ({ ...a, nombre: nombreConColor(a.nombre, color) })),
     };
   });
 }

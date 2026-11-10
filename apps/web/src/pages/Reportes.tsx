@@ -326,6 +326,7 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
                 <div>{p.nombre}</div>
                 <div className={styles.productoMeta}>
                   {p.marca} · {p.sku} · talla {p.talla ?? 'Única'}
+                  {p.color ? ` · ${p.color}` : ''}
                 </div>
               </span>
               <span>{formatoMXN.format(p.precio)}</span>

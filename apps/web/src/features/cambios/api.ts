@@ -7,6 +7,7 @@ export interface LineaParaCambio {
   nombre: string;
   sku: string;
   talla: string | null;
+  color: string | null;
   cantidad: number;
   precioPagado: number;
   probado: boolean;

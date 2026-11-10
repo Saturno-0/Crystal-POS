@@ -94,7 +94,12 @@ No hay lint configurado en `apps/api` ni `packages/shared`.
   activas y no se refleja, corre `pnpm --filter @crystal/shared build` a mano.
 
 ## Reglas de negocio no negociables
-1. Cada venta descuenta 1 unidad del modelo general; no se modelan variantes de color.
+1. Cada venta descuenta 1 unidad del modelo general; no se modelan variantes de color,
+   **excepto** en categorías marcadas "por color" (`categorias.por_color`, p. ej. sacos y
+   pantalones de vestir): ahí cada color × talla es su propio producto/SKU con
+   `productos.color` obligatorio, dado de alta desde el modal "Alta por color y talla".
+   Columnas agregadas después del primer despliegue se añaden en `db/migraciones.ts`
+   (schema.sql no altera una BD ya existente).
 2. Apartado = 15 días; abono > 0 y < total.
 3. Al penalizar: abono perdido, unidad regresa a stock y se retira el descuento del producto.
 4. Efectivo y Transferencia aplican −$15; Tarjeta no.

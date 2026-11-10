@@ -30,14 +30,20 @@ export function GestionCategorias({
   const [abierto, setAbierto] = useState(false);
   const [nombre, setNombre] = useState('');
   const [tipoTalla, setTipoTalla] = useState<TipoTalla>('estandar_ropa');
+  const [porColor, setPorColor] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
   async function agregar() {
     if (!nombre.trim() || enviando) return;
     setEnviando(true);
     try {
-      await productosApi.crearCategoria({ nombre: nombre.trim(), tipoTalla });
+      await productosApi.crearCategoria({
+        nombre: nombre.trim(),
+        tipoTalla,
+        porColor: porColor && tipoTalla !== 'sin_talla',
+      });
       setNombre('');
+      setPorColor(false);
       onCambio();
       mostrar(`Categoría "${nombre.trim()}" agregada`);
     } catch (err) {
@@ -92,6 +98,7 @@ export function GestionCategorias({
               <span style={{ flex: 1, font: "500 13px/1.3 var(--font-ui)" }}>{c.nombre}</span>
               <span style={{ font: "400 11px/1 var(--font-mono)", color: 'var(--faint)' }}>
                 {ETIQUETA_TIPO_TALLA[c.tipoTalla]}
+                {c.porColor ? ' · por color' : ''}
               </span>
               <button
                 type="button"
@@ -139,6 +146,27 @@ export function GestionCategorias({
                 </option>
               ))}
             </select>
+            {tipoTalla !== 'sin_talla' && (
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  minHeight: 38,
+                  font: "400 12.5px/1.2 var(--font-ui)",
+                  color: 'var(--text)',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={porColor}
+                  onChange={(e) => setPorColor(e.target.checked)}
+                  style={{ width: 18, height: 18 }}
+                />
+                Por color (sacos, pantalón de vestir)
+              </label>
+            )}
             <button
               type="button"
               onClick={agregar}

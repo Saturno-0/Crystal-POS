@@ -5,7 +5,7 @@ export function listarCategorias() {
   return apiFetch<Categoria[]>('/api/categorias');
 }
 
-export function crearCategoria(input: { nombre: string; tipoTalla: TipoTalla }) {
+export function crearCategoria(input: { nombre: string; tipoTalla: TipoTalla; porColor?: boolean }) {
   return apiFetch<Categoria>('/api/categorias', {
     method: 'POST',
     body: JSON.stringify(input),
@@ -34,6 +34,7 @@ export interface CrearProductoInput {
   marca: string;
   categoriaId: number;
   talla?: string;
+  color?: string;
   precio: number;
   cantidad?: number;
   descuentoTipo?: TipoDescuento;
@@ -47,12 +48,18 @@ export function crearProducto(input: CrearProductoInput) {
   });
 }
 
+export interface FilaColor {
+  color: string;
+  cantidades: Record<string, number>;
+}
+
 export interface CrearLotePorTallasInput {
   nombre: string;
   marca: string;
   categoriaId: number;
   precio: number;
-  cantidades: Record<string, number>;
+  cantidades?: Record<string, number>;
+  porColor?: FilaColor[];
   descuentoTipo?: TipoDescuento;
   descuentoValor?: number;
 }
@@ -70,6 +77,7 @@ export interface EditarProductoInput {
   precio?: number;
   stock?: number;
   talla?: string;
+  color?: string;
   categoriaId?: number;
   descuentoTipo?: TipoDescuento | null;
   descuentoValor?: number | null;

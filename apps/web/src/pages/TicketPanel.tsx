@@ -1,3 +1,4 @@
+import { nombreConColor } from '@crystal/shared';
 import { calcularTotales } from '@crystal/shared';
 import type { UseCarrito } from '../features/ventas/useCarrito';
 import styles from './TicketPanel.module.css';
@@ -79,7 +80,9 @@ export function TicketPanel({
           <div key={linea.producto.id} className={styles.linea}>
             <div className={styles.filaLinea1}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className={styles.nombreLinea}>{linea.producto.nombre}</div>
+                <div className={styles.nombreLinea}>
+                  {nombreConColor(linea.producto.nombre, linea.producto.color)}
+                </div>
                 <div className={styles.metaLinea}>
                   {linea.producto.sku} · {formatoMXN.format(linea.producto.precio)}
                 </div>

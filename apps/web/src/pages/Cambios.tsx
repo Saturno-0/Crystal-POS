@@ -1,3 +1,4 @@
+import { nombreConColor } from '@crystal/shared';
 import type { MetodoPago, Producto } from '@crystal/shared';
 import { useState } from 'react';
 import { useToast } from '../components/feedback/ToastProvider';
@@ -170,7 +171,8 @@ export function Cambios() {
                     <div className={styles.lineaInfo}>
                       <div className={styles.lineaNombre}>{l.nombre}</div>
                       <div className={styles.lineaMeta}>
-                        {l.sku} · talla {l.talla ?? 'Única'} · pagado {formatoMXN.format(l.precioPagado)}
+                        {l.sku} · talla {l.talla ?? 'Única'}
+                        {l.color ? ` · ${l.color}` : ''} · pagado {formatoMXN.format(l.precioPagado)}
                       </div>
                       {!l.elegible && <div className={styles.lineaMotivo}>{motivoNoElegible(l)}</div>}
                     </div>
@@ -220,7 +222,7 @@ export function Cambios() {
                       }}
                     >
                       <span>
-                        {p.nombre} · {p.sku}
+                        {nombreConColor(p.nombre, p.color)} · {p.sku}
                       </span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
                         {formatoMXN.format(p.precio)}

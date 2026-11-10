@@ -7,12 +7,13 @@ interface CategoriaRow {
   id: number;
   nombre: string;
   tipo_talla: TipoTalla;
+  por_color: number;
 }
 
 const TIPOS_TALLA: TipoTalla[] = ['numerica_pantalon', 'estandar_ropa', 'sin_talla'];
 
 function aPublico(row: CategoriaRow) {
-  return { id: row.id, nombre: row.nombre, tipoTalla: row.tipo_talla };
+  return { id: row.id, nombre: row.nombre, tipoTalla: row.tipo_talla, porColor: row.por_color === 1 };
 }
 
 export function listar(db: Database.Database) {
@@ -22,7 +23,7 @@ export function listar(db: Database.Database) {
 
 export function crear(
   db: Database.Database,
-  input: { nombre: string; tipoTalla: TipoTalla },
+  input: { nombre: string; tipoTalla: TipoTalla; porColor?: boolean },
   actorId: number,
 ) {
   const nombre = input.nombre?.trim();
@@ -32,20 +33,27 @@ export function crear(
   if (!TIPOS_TALLA.includes(input.tipoTalla)) {
     throw new ValidationError('Tipo de talla inválido');
   }
+  const porColor = input.porColor === true;
+  // Color × talla: sin talla no hay cuadrícula que capturar.
+  if (porColor && input.tipoTalla === 'sin_talla') {
+    throw new ValidationError('Una categoría por color debe manejar tallas');
+  }
   if (db.prepare('SELECT 1 FROM categorias WHERE nombre = ?').get(nombre)) {
     throw new ValidationError('Ya existe una categoría con ese nombre');
   }
 
   const result = db
-    .prepare('INSERT INTO categorias (nombre, tipo_talla) VALUES (@nombre, @tipoTalla)')
-    .run({ nombre, tipoTalla: input.tipoTalla });
+    .prepare(
+      'INSERT INTO categorias (nombre, tipo_talla, por_color) VALUES (@nombre, @tipoTalla, @porColor)',
+    )
+    .run({ nombre, tipoTalla: input.tipoTalla, porColor: porColor ? 1 : 0 });
 
   registrarAuditoria(db, {
     usuarioId: actorId,
     accion: 'categoria.crear',
     entidad: 'categoria',
     entidadId: Number(result.lastInsertRowid),
-    detalle: { nombre, tipoTalla: input.tipoTalla },
+    detalle: { nombre, tipoTalla: input.tipoTalla, porColor },
   });
 
   return aPublico(

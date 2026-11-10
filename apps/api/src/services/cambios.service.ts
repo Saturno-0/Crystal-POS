@@ -34,7 +34,7 @@ export function buscarVentaParaCambio(db: Database.Database, folio: string) {
   const lineas = db
     .prepare(
       `SELECT vl.id, vl.cantidad, vl.probado, vl.importe_linea,
-              p.id AS productoId, p.nombre, p.sku, p.talla,
+              p.id AS productoId, p.nombre, p.sku, p.talla, p.color,
               (SELECT COUNT(*) FROM cambios c WHERE c.venta_linea_id = vl.id) AS yaCambiada
        FROM venta_lineas vl JOIN productos p ON p.id = vl.producto_id
        WHERE vl.venta_id = ?`,
@@ -48,6 +48,7 @@ export function buscarVentaParaCambio(db: Database.Database, folio: string) {
     nombre: string;
     sku: string;
     talla: string | null;
+    color: string | null;
     yaCambiada: number;
   }[];
 
@@ -59,6 +60,7 @@ export function buscarVentaParaCambio(db: Database.Database, folio: string) {
       nombre: l.nombre,
       sku: l.sku,
       talla: l.talla,
+      color: l.color,
       cantidad: l.cantidad,
       precioPagado: l.importe_linea / l.cantidad,
       probado: l.probado === 1,

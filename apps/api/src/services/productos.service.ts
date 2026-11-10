@@ -1,5 +1,12 @@
 import type Database from 'better-sqlite3';
-import { DESCUENTOS_VESTIDO, TALLAS_POR_TIPO, type TipoDescuento, type TipoTalla } from '@crystal/shared';
+import {
+  COLOR_MAX_CARACTERES,
+  DESCUENTOS_VESTIDO,
+  TALLAS_POR_TIPO,
+  normalizarColor,
+  type TipoDescuento,
+  type TipoTalla,
+} from '@crystal/shared';
 import { NotFoundError, ValidationError } from '../lib/errors.js';
 import { registrar as registrarAuditoria } from './auditoria.service.js';
 
@@ -7,6 +14,7 @@ interface CategoriaRow {
   id: number;
   nombre: string;
   tipo_talla: TipoTalla;
+  por_color: number;
 }
 
 interface ProductoRow {
@@ -16,6 +24,7 @@ interface ProductoRow {
   marca: string;
   categoria_id: number;
   talla: string | null;
+  color: string | null;
   precio: number;
   stock: number;
   vendidos: number;
@@ -32,6 +41,7 @@ function aPublico(row: ProductoRow) {
     marca: row.marca,
     categoriaId: row.categoria_id,
     talla: row.talla,
+    color: row.color,
     precio: row.precio,
     stock: row.stock,
     vendidos: row.vendidos,
@@ -79,6 +89,18 @@ function normalizarTalla(categoria: CategoriaRow, tallaInput: string | null | un
   return tallaInput;
 }
 
+// Categorías por color (sacos, pantalones de vestir): color obligatorio.
+// El resto no guarda color (regla 1: sin variantes de color).
+function normalizarColorProducto(categoria: CategoriaRow, colorInput: string | null | undefined): string | null {
+  if (categoria.por_color !== 1) return null;
+  const color = normalizarColor(colorInput);
+  if (!color) throw new ValidationError('Captura el color del producto');
+  if (color.length > COLOR_MAX_CARACTERES) {
+    throw new ValidationError(`El color no puede pasar de ${COLOR_MAX_CARACTERES} caracteres`);
+  }
+  return color;
+}
+
 // Regla 6: solo los vestidos llevan descuento automático de producto (10 %, $100 o $40).
 function normalizarDescuentoVestido(
   categoria: CategoriaRow,
@@ -108,7 +130,9 @@ export function listar(db: Database.Database, filtros: FiltrosProducto = {}) {
     params.categoriaId = filtros.categoriaId;
   }
   if (filtros.busqueda) {
-    condiciones.push('(nombre LIKE @busqueda OR marca LIKE @busqueda OR sku LIKE @busqueda)');
+    condiciones.push(
+      '(nombre LIKE @busqueda OR marca LIKE @busqueda OR sku LIKE @busqueda OR color LIKE @busqueda)',
+    );
     params.busqueda = `%${filtros.busqueda}%`;
   }
   const filas = db
@@ -122,6 +146,7 @@ export interface CrearProductoInput {
   marca: string;
   categoriaId: number;
   talla?: string;
+  color?: string;
   precio: number;
   cantidad?: number; // >1 = alta por lote (HU-2.2)
   descuentoTipo?: TipoDescuento;
@@ -143,13 +168,14 @@ export function crear(db: Database.Database, input: CrearProductoInput, actorId:
 
   const categoria = buscarCategoria(db, input.categoriaId);
   const talla = normalizarTalla(categoria, input.talla);
+  const color = normalizarColorProducto(categoria, input.color);
   const descuento = normalizarDescuentoVestido(categoria, input.descuentoTipo, input.descuentoValor);
   const sku = generarSku(db, marca, categoria.nombre);
 
   const result = db
     .prepare(
-      `INSERT INTO productos (sku, nombre, marca, categoria_id, talla, precio, stock, descuento_tipo, descuento_valor)
-       VALUES (@sku, @nombre, @marca, @categoriaId, @talla, @precio, @stock, @descuentoTipo, @descuentoValor)`,
+      `INSERT INTO productos (sku, nombre, marca, categoria_id, talla, color, precio, stock, descuento_tipo, descuento_valor)
+       VALUES (@sku, @nombre, @marca, @categoriaId, @talla, @color, @precio, @stock, @descuentoTipo, @descuentoValor)`,
     )
     .run({
       sku,
@@ -157,6 +183,7 @@ export function crear(db: Database.Database, input: CrearProductoInput, actorId:
       marca,
       categoriaId: categoria.id,
       talla,
+      color,
       precio: input.precio,
       stock: cantidad,
       descuentoTipo: descuento.descuentoTipo,
@@ -168,7 +195,7 @@ export function crear(db: Database.Database, input: CrearProductoInput, actorId:
     accion: 'producto.crear',
     entidad: 'producto',
     entidadId: Number(result.lastInsertRowid),
-    detalle: { sku, nombre, cantidad },
+    detalle: { sku, nombre, cantidad, ...(color ? { color } : {}) },
   });
 
   return aPublico(
@@ -181,7 +208,10 @@ export interface CrearLotePorTallasInput {
   marca: string;
   categoriaId: number;
   precio: number;
-  cantidades: Record<string, number>;
+  // Categorías sin color: cantidad por talla.
+  cantidades?: Record<string, number>;
+  // Categorías por color: una fila de tallas por cada color.
+  porColor?: { color: string; cantidades: Record<string, number> }[];
   descuentoTipo?: TipoDescuento;
   descuentoValor?: number;
 }
@@ -207,24 +237,47 @@ export function crearLotePorTallas(
   }
   const descuento = normalizarDescuentoVestido(categoria, input.descuentoTipo, input.descuentoValor);
 
-  const entradas = Object.entries(input.cantidades ?? {}).filter(([, cantidad]) => cantidad > 0);
-  if (entradas.length === 0) {
-    throw new ValidationError('Captura al menos una cantidad por talla');
-  }
-  for (const [talla, cantidad] of entradas) {
-    normalizarTalla(categoria, talla);
-    if (!Number.isInteger(cantidad) || cantidad < 1) {
-      throw new ValidationError(`Cantidad inválida para la talla ${talla}`);
+  // Una entrada = un SKU: (talla, color, cantidad). Sin color → color null.
+  const entradas: { talla: string; color: string | null; cantidad: number }[] = [];
+  const agregar = (cantidades: Record<string, number>, color: string | null) => {
+    for (const [talla, cantidad] of Object.entries(cantidades ?? {})) {
+      if (cantidad === 0) continue;
+      normalizarTalla(categoria, talla);
+      if (!Number.isInteger(cantidad) || cantidad < 1) {
+        throw new ValidationError(
+          `Cantidad inválida para la talla ${talla}${color ? ` en color ${color}` : ''}`,
+        );
+      }
+      entradas.push({ talla, color, cantidad });
     }
+  };
+
+  if (categoria.por_color === 1) {
+    const vistos = new Set<string>();
+    for (const fila of input.porColor ?? []) {
+      const color = normalizarColorProducto(categoria, fila.color);
+      if (vistos.has(color!)) throw new ValidationError(`El color ${color} está repetido`);
+      vistos.add(color!);
+      agregar(fila.cantidades, color);
+    }
+  } else {
+    agregar(input.cantidades ?? {}, null);
+  }
+  if (entradas.length === 0) {
+    throw new ValidationError(
+      categoria.por_color === 1
+        ? 'Captura al menos una cantidad por color y talla'
+        : 'Captura al menos una cantidad por talla',
+    );
   }
 
   const ejecutar = db.transaction(() =>
-    entradas.map(([talla, cantidad]) => {
+    entradas.map(({ talla, color, cantidad }) => {
       const sku = generarSku(db, marca, categoria.nombre);
       const result = db
         .prepare(
-          `INSERT INTO productos (sku, nombre, marca, categoria_id, talla, precio, stock, descuento_tipo, descuento_valor)
-           VALUES (@sku, @nombre, @marca, @categoriaId, @talla, @precio, @stock, @descuentoTipo, @descuentoValor)`,
+          `INSERT INTO productos (sku, nombre, marca, categoria_id, talla, color, precio, stock, descuento_tipo, descuento_valor)
+           VALUES (@sku, @nombre, @marca, @categoriaId, @talla, @color, @precio, @stock, @descuentoTipo, @descuentoValor)`,
         )
         .run({
           sku,
@@ -232,6 +285,7 @@ export function crearLotePorTallas(
           marca,
           categoriaId: categoria.id,
           talla,
+          color,
           precio: input.precio,
           stock: cantidad,
           descuentoTipo: descuento.descuentoTipo,
@@ -243,7 +297,7 @@ export function crearLotePorTallas(
         accion: 'producto.crear',
         entidad: 'producto',
         entidadId: Number(result.lastInsertRowid),
-        detalle: { sku, nombre, talla, cantidad },
+        detalle: { sku, nombre, talla, cantidad, ...(color ? { color } : {}) },
       });
 
       return aPublico(
@@ -261,6 +315,7 @@ export interface EditarProductoInput {
   precio?: number;
   stock?: number;
   talla?: string;
+  color?: string;
   categoriaId?: number;
   descuentoTipo?: TipoDescuento | null;
   descuentoValor?: number | null;
@@ -298,11 +353,17 @@ export function editar(
     if (nuevaCategoria.tipo_talla !== categoriaActual.tipo_talla) {
       throw new ValidationError('Solo puedes mover el producto a una categoría con el mismo tipo de talla');
     }
+    // Igual con el color: si no, quedaría un color huérfano o faltaría uno.
+    if (nuevaCategoria.por_color !== categoriaActual.por_color) {
+      throw new ValidationError('Solo puedes mover el producto a una categoría que también maneje color (o que no lo maneje)');
+    }
     categoriaDestino = nuevaCategoria;
   }
 
   const talla =
     cambios.talla !== undefined ? normalizarTalla(categoriaDestino, cambios.talla) : actual.talla;
+  const color =
+    cambios.color !== undefined ? normalizarColorProducto(categoriaDestino, cambios.color) : actual.color;
 
   const tocaDescuento = cambios.descuentoTipo !== undefined || cambios.descuentoValor !== undefined;
   const descuento = tocaDescuento
@@ -311,7 +372,7 @@ export function editar(
 
   db.prepare(
     `UPDATE productos SET nombre=@nombre, marca=@marca, precio=@precio, stock=@stock,
-       talla=@talla, categoria_id=@categoriaId,
+       talla=@talla, color=@color, categoria_id=@categoriaId,
        descuento_tipo=@descuentoTipo, descuento_valor=@descuentoValor, updated_at=datetime('now')
      WHERE id=@id`,
   ).run({
@@ -321,6 +382,7 @@ export function editar(
     precio,
     stock,
     talla,
+    color,
     categoriaId: categoriaDestino.id,
     descuentoTipo: descuento.descuentoTipo,
     descuentoValor: descuento.descuentoValor,
@@ -329,6 +391,7 @@ export function editar(
   const detalleCambios = {
     ...(stock !== actual.stock ? { stockAnterior: actual.stock, stockNuevo: stock } : {}),
     ...(talla !== actual.talla ? { tallaAnterior: actual.talla, tallaNueva: talla } : {}),
+    ...(color !== actual.color ? { colorAnterior: actual.color, colorNuevo: color } : {}),
     ...(categoriaDestino.id !== actual.categoria_id
       ? { categoriaAnteriorId: actual.categoria_id, categoriaNuevaId: categoriaDestino.id }
       : {}),

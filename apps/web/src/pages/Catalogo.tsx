@@ -98,6 +98,7 @@ export function Catalogo({
             <div className={styles.nombre}>{p.nombre}</div>
             <div className={styles.detalle}>
               {p.marca} · talla {p.talla ?? 'Única'}
+                  {p.color ? ` · ${p.color}` : ''}
             </div>
             <div className={styles.pie}>
               <span className={styles.precio}>{formatoMXN.format(p.precio)}</span>

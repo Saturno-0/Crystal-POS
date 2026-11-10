@@ -377,3 +377,89 @@ describe('editar', () => {
     );
   });
 });
+
+describe('categorías por color (sacos, pantalones de vestir)', () => {
+  let sacosId: number;
+  let pantalonVestirId: number;
+
+  beforeEach(() => {
+    sacosId = Number(
+      db.prepare("INSERT INTO categorias (nombre, tipo_talla, por_color) VALUES ('Sacos','estandar_ropa',1)").run()
+        .lastInsertRowid,
+    );
+    pantalonVestirId = Number(
+      db
+        .prepare(
+          "INSERT INTO categorias (nombre, tipo_talla, por_color) VALUES ('Pantalones de vestir','numerica_pantalon',1)",
+        )
+        .run().lastInsertRowid,
+    );
+  });
+
+  const base = { nombre: 'Saco slim', marca: 'Zara', precio: 1200 };
+
+  it('alta individual exige color y lo guarda normalizado', () => {
+    expect(() => productos.crear(db, { ...base, categoriaId: sacosId, talla: 'M' }, ACTOR_ID)).toThrow(
+      'Captura el color',
+    );
+    const p = productos.crear(db, { ...base, categoriaId: sacosId, talla: 'M', color: ' azul MARINO ' }, ACTOR_ID);
+    expect(p.color).toBe('Azul marino');
+  });
+
+  it('categorías sin color ignoran el color recibido', () => {
+    const p = productos.crear(
+      db,
+      { ...base, categoriaId: blusasId, talla: 'M', color: 'Negro' },
+      ACTOR_ID,
+    );
+    expect(p.color).toBeNull();
+  });
+
+  it('lote color × talla crea un SKU por cada combinación con cantidad', () => {
+    const creados = productos.crearLotePorTallas(
+      db,
+      {
+        ...base,
+        categoriaId: pantalonVestirId,
+        porColor: [
+          { color: 'Negro', cantidades: { '5': 2, '7': 1, '9': 0 } },
+          { color: 'Gris', cantidades: { '7': 3 } },
+        ],
+      },
+      ACTOR_ID,
+    );
+    expect(creados.map((p) => [p.color, p.talla, p.stock])).toEqual([
+      ['Negro', '5', 2],
+      ['Negro', '7', 1],
+      ['Gris', '7', 3],
+    ]);
+    expect(new Set(creados.map((p) => p.sku)).size).toBe(3);
+  });
+
+  it('rechaza colores repetidos, vacíos o sin cantidades', () => {
+    const lote = (porColor: { color: string; cantidades: Record<string, number> }[]) =>
+      productos.crearLotePorTallas(db, { ...base, categoriaId: sacosId, porColor }, ACTOR_ID);
+    expect(() =>
+      lote([
+        { color: 'Negro', cantidades: { M: 1 } },
+        { color: 'negro', cantidades: { L: 1 } },
+      ]),
+    ).toThrow('repetido');
+    expect(() => lote([{ color: '  ', cantidades: { M: 1 } }])).toThrow('Captura el color');
+    expect(() => lote([{ color: 'Negro', cantidades: { M: 0 } }])).toThrow('al menos una cantidad');
+    expect(() => lote([{ color: 'Negro', cantidades: { '7': 1 } }])).toThrow('talla válida');
+    // Nada quedó a medias.
+    expect(productos.listar(db, { categoriaId: sacosId })).toHaveLength(0);
+  });
+
+  it('se puede buscar por color', () => {
+    productos.crear(db, { ...base, categoriaId: sacosId, talla: 'M', color: 'Vino' }, ACTOR_ID);
+    expect(productos.listar(db, { busqueda: 'vino' })).toHaveLength(1);
+  });
+
+  it('editar cambia el color y no permite mover a una categoría sin color', () => {
+    const p = productos.crear(db, { ...base, categoriaId: sacosId, talla: 'M', color: 'Negro' }, ACTOR_ID);
+    expect(productos.editar(db, p.id, { color: 'Beige' }, ACTOR_ID).color).toBe('Beige');
+    expect(() => productos.editar(db, p.id, { categoriaId: blusasId }, ACTOR_ID)).toThrow('maneje color');
+  });
+});

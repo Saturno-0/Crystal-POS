@@ -29,6 +29,8 @@ export interface Categoria {
   id: number;
   nombre: string;
   tipoTalla: TipoTalla;
+  // Se da de alta por color × talla (sacos, pantalones de vestir).
+  porColor: boolean;
 }
 
 export interface Producto {
@@ -38,6 +40,7 @@ export interface Producto {
   marca: string;
   categoriaId: number;
   talla: string | null;
+  color: string | null;
   precio: number;
   stock: number;
   vendidos: number;

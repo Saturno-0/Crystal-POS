@@ -7,6 +7,7 @@ import { ApiError } from '../lib/apiClient';
 import styles from './Alta.module.css';
 import { GestionCategorias } from './GestionCategorias';
 import { ModalLotePorTallas } from './ModalLotePorTallas';
+import { SelectorColor } from './SelectorColor';
 
 const PRESETS_LOTE = [5, 10, 20];
 
@@ -39,6 +40,7 @@ export function Alta({
   const [precio, setPrecio] = useState('');
   const [categoriaId, setCategoriaId] = useState<number | null>(null);
   const [talla, setTalla] = useState('');
+  const [color, setColor] = useState<string | null>(null);
   const [descuentoVestido, setDescuentoVestido] = useState<{ tipo: TipoDescuento; valor: number } | null>(
     null,
   );
@@ -85,6 +87,7 @@ export function Alta({
     setStockEditado(String(productoEnEdicion.stock));
     setCategoriaId(productoEnEdicion.categoriaId);
     setTalla(productoEnEdicion.talla ?? '');
+    setColor(productoEnEdicion.color);
     setDescuentoVestido(
       productoEnEdicion.descuentoTipo && productoEnEdicion.descuentoValor
         ? { tipo: productoEnEdicion.descuentoTipo, valor: productoEnEdicion.descuentoValor }
@@ -95,16 +98,19 @@ export function Alta({
   const categoria = categorias.find((c) => c.id === categoriaId);
   const opcionesTalla = categoria ? TALLAS_POR_TIPO[categoria.tipoTalla] : null;
   const esVestido = categoria?.tipoTalla === 'sin_talla';
+  const porColor = !!categoria?.porColor;
 
   // En edición, solo se puede mover el producto a una categoría con el
-  // mismo tipo de talla que la original (nunca la que trae el producto en
+  // mismo tipo de talla (y que también maneje o no color) que la original (nunca la que trae el producto en
   // sí, que puede cambiar mientras se edita) — así la talla actual siempre
   // sigue siendo válida sin tener que volver a elegirla.
   const categoriaOriginal = editando
     ? categorias.find((c) => c.id === productoEnEdicion?.categoriaId)
     : undefined;
   const categoriasElegibles = categoriaOriginal
-    ? categorias.filter((c) => c.tipoTalla === categoriaOriginal.tipoTalla)
+    ? categorias.filter(
+        (c) => c.tipoTalla === categoriaOriginal.tipoTalla && c.porColor === categoriaOriginal.porColor,
+      )
     : categorias;
 
   function elegirCategoria(c: Categoria) {
@@ -112,6 +118,7 @@ export function Alta({
     if (editando) return; // mismo tipo de talla por construcción: talla/descuento se quedan igual
     setTalla(tallaPorDefecto(c));
     setDescuentoVestido(null);
+    if (!c.porColor) setColor(null);
   }
 
   function limpiar() {
@@ -120,6 +127,7 @@ export function Alta({
     setPrecio('');
     setCantidad(5);
     setDescuentoVestido(null);
+    setColor(null);
     if (categorias.length > 0) {
       setCategoriaId(categorias[0].id);
       setTalla(tallaPorDefecto(categorias[0]));
@@ -134,6 +142,7 @@ export function Alta({
       return mostrar('Captura un precio válido');
     }
     if (!categoriaId) return mostrar('Selecciona una categoría');
+    if (porColor && !color) return mostrar('Elige el color del producto');
     const stockNumero = Number(stockEditado);
     if (editando && (!stockEditado || !Number.isInteger(stockNumero) || stockNumero < 0)) {
       return mostrar('Captura una cantidad de inventario válida');
@@ -148,6 +157,7 @@ export function Alta({
           precio: precioNumero,
           stock: stockNumero,
           talla: esVestido ? undefined : talla,
+          color: porColor && color ? color : undefined,
           categoriaId: categoriaId ?? undefined,
           descuentoTipo: descuentoVestido?.tipo ?? null,
           descuentoValor: descuentoVestido?.valor ?? null,
@@ -162,6 +172,7 @@ export function Alta({
         marca: marca.trim(),
         categoriaId,
         talla: esVestido ? undefined : talla,
+        color: porColor && color ? color : undefined,
         precio: precioNumero,
         cantidad: modo === 'lote' ? cantidad : 1,
         descuentoTipo: descuentoVestido?.tipo,
@@ -192,7 +203,9 @@ export function Alta({
     setModalTallasAbierto(true);
   }
 
-  async function enviarLotePorTallas(cantidades: Record<string, number>) {
+  async function enviarLotePorTallas(
+    distribucion: { cantidades: Record<string, number> } | { porColor: productosApi.FilaColor[] },
+  ) {
     if (enviando || !categoriaId) return;
     const precioNumero = Number(precio);
     setEnviando(true);
@@ -202,12 +215,16 @@ export function Alta({
         marca: marca.trim(),
         categoriaId,
         precio: precioNumero,
-        cantidades,
+        ...distribucion,
         descuentoTipo: descuentoVestido?.tipo,
         descuentoValor: descuentoVestido?.valor,
       });
       const totalPiezas = creados.reduce((acc, p) => acc + p.stock, 0);
-      mostrar(`${totalPiezas} piezas dadas de alta en ${creados.length} tallas`);
+      mostrar(
+        'porColor' in distribucion
+          ? `${totalPiezas} piezas dadas de alta en ${creados.length} combinaciones de color y talla`
+          : `${totalPiezas} piezas dadas de alta en ${creados.length} tallas`,
+      );
       setModalTallasAbierto(false);
       limpiar();
     } catch (err) {
@@ -331,9 +348,18 @@ export function Alta({
           )}
         </div>
 
+        {porColor && (
+          <div className={styles.campo}>
+            <label className={styles.label}>Color{color ? `: ${color}` : ''}</label>
+            <SelectorColor seleccionado={color} textoBoton="Usar" onElegir={setColor} />
+          </div>
+        )}
+
         {!editando && !esVestido && (
           <button type="button" className={styles.btnLotePorTallas} onClick={abrirModalTallas}>
-            Alta por tallas (varias cantidades a la vez)
+            {porColor
+              ? 'Alta por color y talla (varias cantidades a la vez)'
+              : 'Alta por tallas (varias cantidades a la vez)'}
           </button>
         )}
 
@@ -395,7 +421,9 @@ export function Alta({
                 ))}
               </div>
               <div className={styles.notaLote}>
-                Las variantes de color no se registran: las {cantidad} unidades comparten un solo SKU.
+                {porColor
+                  ? `Las ${cantidad} unidades comparten un solo SKU (mismo color y talla). Para varios colores usa "Alta por color y talla".`
+                  : `Las variantes de color no se registran: las ${cantidad} unidades comparten un solo SKU.`}
               </div>
             </div>
           ) : (
@@ -419,9 +447,11 @@ export function Alta({
       {modalTallasAbierto && opcionesTalla && (
         <ModalLotePorTallas
           tallas={opcionesTalla}
+          porColor={porColor}
           enviando={enviando}
           onCerrar={() => setModalTallasAbierto(false)}
-          onConfirmar={enviarLotePorTallas}
+          onConfirmar={(cantidades) => enviarLotePorTallas({ cantidades })}
+          onConfirmarPorColor={(filas) => enviarLotePorTallas({ porColor: filas })}
         />
       )}
     </div>

@@ -5,6 +5,9 @@ CREATE TABLE IF NOT EXISTS categorias (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre      TEXT NOT NULL UNIQUE,
   tipo_talla  TEXT NOT NULL CHECK (tipo_talla IN ('numerica_pantalon','estandar_ropa','sin_talla')),
+  -- 1 = la categoría se da de alta por color × talla (p. ej. sacos, pantalones
+  -- de vestir): cada producto lleva un color obligatorio. Ver db/migraciones.ts.
+  por_color   INTEGER NOT NULL DEFAULT 0,
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -29,6 +32,7 @@ CREATE TABLE IF NOT EXISTS productos (
   marca             TEXT NOT NULL,
   categoria_id      INTEGER NOT NULL REFERENCES categorias(id) ON DELETE RESTRICT,
   talla             TEXT,
+  color             TEXT, -- solo en categorías por_color; NULL en el resto
   precio            REAL NOT NULL CHECK (precio >= 0),
   stock             INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
   vendidos          INTEGER NOT NULL DEFAULT 0,

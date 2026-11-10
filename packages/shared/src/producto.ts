@@ -32,3 +32,31 @@ export function descuentoVestidoValido(
   if (tipo == null || valor == null) return true; // el descuento de vestido es opcional
   return DESCUENTOS_VESTIDO.some((d) => d.tipo === tipo && d.valor === valor);
 }
+
+// Categorías por color (sacos, pantalones de vestir): botones rápidos en el
+// alta; también se puede escribir un color que no esté aquí.
+export const COLORES_COMUNES: readonly string[] = [
+  'Negro',
+  'Azul marino',
+  'Gris',
+  'Gris oxford',
+  'Beige',
+  'Café',
+  'Blanco',
+  'Vino',
+];
+
+export const COLOR_MAX_CARACTERES = 30;
+
+// "  azul   MARINO " → "Azul marino". Devuelve null si queda vacío.
+export function normalizarColor(color: string | null | undefined): string | null {
+  const limpio = (color ?? '').trim().replace(/\s+/g, ' ');
+  if (!limpio) return null;
+  const minus = limpio.toLocaleLowerCase('es-MX');
+  return minus.charAt(0).toLocaleUpperCase('es-MX') + minus.slice(1);
+}
+
+// Para ticket, carrito y apartados: "Saco slim — Negro".
+export function nombreConColor(nombre: string, color: string | null | undefined): string {
+  return color ? `${nombre} — ${color}` : nombre;
+}

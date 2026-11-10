@@ -38,6 +38,7 @@ CREATE TABLE categorias (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   nombre      TEXT NOT NULL UNIQUE,
   tipo_talla  TEXT NOT NULL CHECK (tipo_talla IN ('numerica_pantalon','estandar_ropa','sin_talla')),
+  por_color   INTEGER NOT NULL DEFAULT 0,  -- 1 = alta por color × talla (sacos, pantalones de vestir); requiere tipo_talla con tallas
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -64,7 +65,8 @@ CREATE TABLE usuarios (
 
 -- ══════════════════ PRODUCTOS ══════════════════
 -- Una fila = un SKU/modelo (talla incluida). El stock por lote vive aquí como
--- cantidad, no como filas individuales. No hay variantes de color.
+-- cantidad, no como filas individuales. Sin variantes de color, salvo en
+-- categorías por_color: ahí cada color × talla es su propio producto/SKU.
 CREATE TABLE productos (
   id                INTEGER PRIMARY KEY AUTOINCREMENT,
   sku               TEXT NOT NULL UNIQUE,     -- MAR-CA-12345; generación reintenta en colisión
@@ -72,6 +74,7 @@ CREATE TABLE productos (
   marca             TEXT NOT NULL,
   categoria_id      INTEGER NOT NULL REFERENCES categorias(id) ON DELETE RESTRICT,
   talla             TEXT,                     -- NULL/'Unica' en categorías tipo_talla='sin_talla'
+  color             TEXT,                     -- obligatorio solo en categorías por_color; NULL en el resto
   precio            REAL NOT NULL CHECK (precio >= 0),
   stock             INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
   vendidos          INTEGER NOT NULL DEFAULT 0,
