@@ -62,7 +62,7 @@ export function ModalLotePorTallas({
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {tallas.map((talla) => (
-            <div key={talla} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div key={talla} style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <div
                 style={{
                   width: 44,
@@ -86,6 +86,7 @@ export function ModalLotePorTallas({
                 placeholder="0"
                 style={{
                   flex: 1,
+                  minWidth: 0,
                   height: 44,
                   borderRadius: 8,
                   border: '1px solid var(--border2)',

@@ -95,6 +95,30 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await expect(page.getByLabel('Cantidad talla 1', { exact: true })).not.toBeVisible();
   });
 
+  test('alta por tallas: ningún campo de cantidad se desborda del modal (2 columnas)', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Alta');
+
+    await page.getByPlaceholder('Ej. Jean recto tiro alto').fill('Pantalon overflow UX test');
+    await page.getByPlaceholder('Marca').fill('Ciclon');
+    await page.getByPlaceholder('$0.00').fill('350');
+    await page.getByRole('button', { name: 'Mezclilla', exact: true }).click();
+    await page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }).click();
+
+    const tarjeta = page.getByText('Cantidad por talla').locator('..');
+    const cajaTarjeta = await tarjeta.boundingBox();
+    expect(cajaTarjeta).not.toBeNull();
+
+    // Regla 7: pantalones usan 8 tallas numéricas → 4 filas de 2 columnas.
+    // Ningún input (ni el de la segunda columna) debe salirse del borde
+    // derecho de la tarjeta del modal.
+    for (const talla of ['1', '3', '5', '7', '9', '11', '13', '15']) {
+      const caja = await page.getByLabel(`Cantidad talla ${talla}`, { exact: true }).boundingBox();
+      expect(caja).not.toBeNull();
+      expect(caja!.x + caja!.width).toBeLessThanOrEqual(cajaTarjeta!.x + cajaTarjeta!.width + 1);
+    }
+  });
+
   test('alta por tallas no aparece para vestidos (sin_talla)', async ({ page }) => {
     await login(page, 'Crystal Domínguez');
     await irA(page, 'Alta');
