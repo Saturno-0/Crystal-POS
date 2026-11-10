@@ -1,3 +1,4 @@
+import { nombreConColor } from '@crystal/shared';
 import type { MetodoPago } from '@crystal/shared';
 import { useEffect } from 'react';
 import type { LineaCarritoCalculada } from '../features/ventas/useCarrito';
@@ -51,9 +52,13 @@ export function TicketModal({
         position: 'fixed',
         inset: 0,
         background: 'rgba(10,10,12,.55)',
-        display: 'grid',
-        placeItems: 'center',
-        padding: 24,
+        // Flex (no grid + placeItems): con grid la tarjeta de 400 px se sale
+        // en móvil. Solo es el contenedor en pantalla: al imprimir, print.css
+        // reposiciona .recibo-imprimible a 54 mm sin depender de él.
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
         zIndex: 100,
       }}
     >
@@ -97,7 +102,7 @@ export function TicketModal({
               style={{ paddingBottom: 8, borderBottom: '1px dashed var(--border2)' }}
             >
               <span>
-                {linea.cantidad} × {linea.producto.nombre}
+                {linea.cantidad} × {nombreConColor(linea.producto.nombre, linea.producto.color)}
                 {linea.probado ? ' · P' : ''}
               </span>
               <span className={styles.lineaImporte}>{formatoMXN.format(resultado.importeLinea)}</span>

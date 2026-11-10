@@ -78,4 +78,37 @@ test.describe('Impresión de ticket (HU-3.6, impresora POS-58 confirmada)', () =
     expect(anchoPx).toBeGreaterThan(190);
     expect(anchoPx).toBeLessThan(220);
   });
+  test('en móvil la pasarela y el ticket caben en pantalla, y al imprimir el recibo sigue a 54 mm', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await login(page, 'Crystal Domínguez');
+    await crearProducto(page, { nombre: 'Impresión UX movil', marca: 'TestMarca', precio: 250, categoria: 'Blusas', talla: 'S' });
+
+    await irA(page, 'Venta');
+    await page.getByPlaceholder('Buscar nombre, marca o SKU…').fill('Impresión UX movil');
+    await page.getByText('Impresión UX movil').click();
+    // En móvil el ticket es una pestaña aparte del catálogo.
+    await page.getByRole('button', { name: /^Ticket · / }).click();
+    await page.getByRole('button', { name: 'Cobrar e imprimir ticket' }).click();
+    const pasarela = page.getByText('Pasarela de pago').locator('..').locator('..');
+    const cajaPasarela = await pasarela.boundingBox();
+    expect(cajaPasarela!.x).toBeGreaterThanOrEqual(0);
+    expect(cajaPasarela!.x + cajaPasarela!.width).toBeLessThanOrEqual(360);
+
+    await pasarela.getByRole('button', { name: 'Tarjeta', exact: true }).click();
+    await pasarela.getByRole('button', { name: 'Confirmar e imprimir ticket' }).click();
+    await expect(page.getByText('Venta completada')).toBeVisible();
+
+    const recibo = page.locator('.recibo-imprimible');
+    const cajaRecibo = await recibo.boundingBox();
+    expect(cajaRecibo!.x).toBeGreaterThanOrEqual(0);
+    expect(cajaRecibo!.x + cajaRecibo!.width).toBeLessThanOrEqual(360);
+
+    // Impresión: el recibo se pega arriba a la izquierda y mide 54 mm (~204 px),
+    // sin importar cómo lo centre el modal en pantalla.
+    await page.emulateMedia({ media: 'print' });
+    const enPapel = await recibo.boundingBox();
+    expect(enPapel!.x).toBe(0);
+    expect(enPapel!.y).toBe(0);
+    expect(Math.round(enPapel!.width)).toBe(204);
+  });
 });

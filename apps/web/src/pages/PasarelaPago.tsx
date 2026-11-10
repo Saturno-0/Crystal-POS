@@ -52,9 +52,13 @@ export function PasarelaPago({
         position: 'fixed',
         inset: 0,
         background: 'rgba(10,10,12,.55)',
-        display: 'grid',
-        placeItems: 'center',
-        padding: 24,
+        // Flex (no grid + placeItems): con grid la tarjeta de 400 px se sale
+        // en móvil. Solo es el contenedor en pantalla: al imprimir, print.css
+        // reposiciona .recibo-imprimible a 54 mm sin depender de él.
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
         zIndex: 100,
       }}
     >
