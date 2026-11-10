@@ -31,7 +31,7 @@
        a mitad del último renglón (@page ya va a margin:0 arriba/lados, que
        sí es lo correcto en un rollo continuo — solo faltaba abajo). */
     padding: 2mm 2mm 8mm !important;
-    font-size: 11px;
+    font-size: 15px;
     box-shadow: none !important;
     border-radius: 0 !important;
   }
