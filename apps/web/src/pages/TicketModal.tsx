@@ -2,6 +2,7 @@ import type { MetodoPago } from '@crystal/shared';
 import { useEffect } from 'react';
 import type { LineaCarritoCalculada } from '../features/ventas/useCarrito';
 import { DATOS_NEGOCIO, LEYENDA_APARTADOS, LEYENDA_PROBADA } from '../lib/datosNegocio';
+import styles from './Ticket.module.css';
 
 const formatoMXN = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 const formatoFechaHora = new Intl.DateTimeFormat('es-MX', {
@@ -70,33 +71,20 @@ export function TicketModal({
         }}
       >
         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <div style={{ font: "700 17px/1.2 var(--font-ui)" }}>{DATOS_NEGOCIO.nombre}</div>
-          <div style={{ font: "400 10.5px/1.4 var(--font-ui)", color: 'var(--muted)' }}>
-            {DATOS_NEGOCIO.direccion}
-          </div>
-          <div style={{ font: "400 10.5px/1.4 var(--font-ui)", color: 'var(--muted)' }}>
+          <div className={styles.negocioNombre}>{DATOS_NEGOCIO.nombre}</div>
+          <div className={styles.negocioMeta}>{DATOS_NEGOCIO.direccion}</div>
+          <div className={styles.negocioMeta}>
             IG {DATOS_NEGOCIO.instagram} · FB {DATOS_NEGOCIO.facebook}
           </div>
         </div>
-        <div style={{ borderTop: '1px dashed var(--border2)' }} />
+        <div className={styles.separador} />
 
-        <div
-          style={{
-            alignSelf: 'flex-start',
-            background: 'var(--oksoft)',
-            color: 'var(--oktext)',
-            borderRadius: 6,
-            padding: '4px 8px',
-            font: "700 11px/1 var(--font-mono)",
-          }}
-        >
-          Folio #{venta.folio}
-        </div>
-        <div style={{ font: "700 19px/1.2 var(--font-ui)" }}>Venta completada</div>
-        <div style={{ font: "400 11.5px/1.4 var(--font-mono)", color: 'var(--muted)' }}>
+        <div className={styles.folio}>Folio #{venta.folio}</div>
+        <div className={styles.titulo}>Venta completada</div>
+        <div className={styles.fechaAtendio}>
           {formatoFechaHora.format(new Date())} · Atendió: {vendedorNombre}
         </div>
-        <div style={{ font: "400 12.5px/1.4 var(--font-ui)", color: 'var(--muted)' }}>
+        <div className={styles.metaTexto}>
           Método: {ETIQUETA_METODO[venta.metodoPago]} · Comisión acreditada:{' '}
           {formatoMXN.format(venta.comisionMonto)}
         </div>
@@ -105,79 +93,43 @@ export function TicketModal({
           {lineas.map(({ linea, resultado }) => (
             <div
               key={linea.producto.id}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 8,
-                paddingBottom: 8,
-                borderBottom: '1px dashed var(--border2)',
-                font: "400 12.5px/1.4 var(--font-ui)",
-              }}
+              className={styles.lineaProducto}
+              style={{ paddingBottom: 8, borderBottom: '1px dashed var(--border2)' }}
             >
               <span>
                 {linea.cantidad} × {linea.producto.nombre}
                 {linea.probado ? ' · P' : ''}
               </span>
-              <span style={{ font: "600 12.5px/1 var(--font-mono)" }}>
-                {formatoMXN.format(resultado.importeLinea)}
-              </span>
+              <span className={styles.lineaImporte}>{formatoMXN.format(resultado.importeLinea)}</span>
             </div>
           ))}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span style={{ font: "600 13px/1 var(--font-ui)" }}>Total cobrado</span>
-          <span style={{ font: "700 22px/1 var(--font-mono)" }}>{formatoMXN.format(venta.total)}</span>
+          <span className={styles.totalLabel}>Total cobrado</span>
+          <span className={styles.totalValor}>{formatoMXN.format(venta.total)}</span>
         </div>
 
         {venta.metodoPago === 'efectivo' && (
-          <div style={{ font: "400 12px/1.4 var(--font-ui)", color: 'var(--muted)' }}>
+          <div className={styles.notaCambio}>
             Recibido {formatoMXN.format(venta.efectivoRecibido ?? 0)} · Cambio{' '}
             {formatoMXN.format(venta.cambio)}
           </div>
         )}
 
-        <div style={{ borderTop: '1px dashed var(--border2)' }} />
+        <div className={styles.separador} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {lineas.some(({ linea }) => linea.probado) && (
-            <div style={{ font: "400 10px/1.4 var(--font-ui)", color: 'var(--muted)' }}>
-              {LEYENDA_PROBADA}
-            </div>
+            <div className={styles.leyenda}>{LEYENDA_PROBADA}</div>
           )}
-          <div style={{ font: "400 10px/1.4 var(--font-ui)", color: 'var(--muted)' }}>
-            {LEYENDA_APARTADOS}
-          </div>
+          <div className={styles.leyenda}>{LEYENDA_APARTADOS}</div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => window.print()}
-          style={{
-            height: 40,
-            border: '1px solid var(--border2)',
-            borderRadius: 9,
-            background: 'var(--surface)',
-            color: 'var(--text)',
-            font: "600 13px/1 var(--font-ui)",
-            cursor: 'pointer',
-          }}
-        >
+        <button type="button" className={styles.btnSecundario} onClick={() => window.print()}>
           Imprimir de nuevo
         </button>
 
-        <button
-          type="button"
-          onClick={onListo}
-          style={{
-            height: 48,
-            border: 'none',
-            borderRadius: 9,
-            background: 'var(--primary)',
-            color: 'var(--pfg)',
-            font: "600 15px/1 var(--font-ui)",
-            cursor: 'pointer',
-          }}
-        >
+        <button type="button" className={styles.btnPrimario} onClick={onListo}>
           Listo
         </button>
       </div>
