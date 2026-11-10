@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { setAuthToken, setTokenRenewedListener } from '../../lib/apiClient';
+import { setAuthToken, setTokenRenewedListener, setUnauthorizedListener } from '../../lib/apiClient';
 import * as authApi from './api';
 import type { UsuarioSesion } from './types';
 
@@ -83,6 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => setTokenRenewedListener(null);
   }, []);
+
+  // Cualquier 401 real (token ya inválido, no uno por renovar) fuerza un
+  // logout limpio: antes cada pantalla solo mostraba el error y se quedaba
+  // ahí con datos desincronizados en vez de mandar de vuelta a Login.
+  useEffect(() => {
+    setUnauthorizedListener(() => guardar(null));
+    return () => setUnauthorizedListener(null);
+  }, [guardar]);
 
   // Mantiene viva la sesión durante uso real que no dispara por sí solo
   // ninguna llamada a la API (p. ej. armar una venta en el carrito es solo

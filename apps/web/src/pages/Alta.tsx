@@ -47,17 +47,23 @@ export function Alta({
   const [enviando, setEnviando] = useState(false);
   const [modalTallasAbierto, setModalTallasAbierto] = useState(false);
 
-  const cargarCategorias = useCallback((mantenerSeleccion: boolean) => {
-    productosApi.listarCategorias().then((lista) => {
-      setCategorias(lista);
-      setCategoriaId((actualId) => {
-        if (mantenerSeleccion && lista.some((c) => c.id === actualId)) return actualId;
-        const primera = lista[0];
-        setTalla(tallaPorDefecto(primera));
-        return primera?.id ?? null;
-      });
-    });
-  }, []);
+  const cargarCategorias = useCallback(
+    (mantenerSeleccion: boolean) => {
+      productosApi
+        .listarCategorias()
+        .then((lista) => {
+          setCategorias(lista);
+          setCategoriaId((actualId) => {
+            if (mantenerSeleccion && lista.some((c) => c.id === actualId)) return actualId;
+            const primera = lista[0];
+            setTalla(tallaPorDefecto(primera));
+            return primera?.id ?? null;
+          });
+        })
+        .catch((err) => mostrar(err instanceof ApiError ? err.message : 'No se pudieron cargar las categorías'));
+    },
+    [mostrar],
+  );
 
   useEffect(() => {
     // En edición, mantenerSeleccion evita que la carga de categorías

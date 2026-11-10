@@ -15,6 +15,7 @@ export class ApiError extends Error {
 
 let token: string | null = null;
 let onTokenRenewed: ((token: string) => void) | null = null;
+let onUnauthorized: (() => void) | null = null;
 
 export function setAuthToken(nuevoToken: string | null) {
   token = nuevoToken;
@@ -22,6 +23,17 @@ export function setAuthToken(nuevoToken: string | null) {
 
 export function setTokenRenewedListener(callback: ((token: string) => void) | null) {
   onTokenRenewed = callback;
+}
+
+/**
+ * Se dispara en cualquier 401 real (token ya inválido/expirado — no hay nada
+ * que renovar, a diferencia de `X-Renewed-Token`). Antes cada pantalla solo
+ * mostraba el mensaje de error ("Sesión expirada") y se quedaba ahí mismo
+ * con datos desincronizados; esto fuerza un logout limpio a la pantalla de
+ * login sin tener que repetir esa lógica en cada `catch`.
+ */
+export function setUnauthorizedListener(callback: (() => void) | null) {
+  onUnauthorized = callback;
 }
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -35,6 +47,7 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 
   const renewed = res.headers.get('X-Renewed-Token');
   if (renewed) onTokenRenewed?.(renewed);
+  if (res.status === 401) onUnauthorized?.();
 
   if (res.status === 204) return undefined as T;
 
@@ -53,6 +66,7 @@ export async function apiDownload(path: string, nombreArchivo: string): Promise<
 
   const renewed = res.headers.get('X-Renewed-Token');
   if (renewed) onTokenRenewed?.(renewed);
+  if (res.status === 401) onUnauthorized?.();
 
   if (!res.ok) {
     const data = await res.json().catch(() => null);
