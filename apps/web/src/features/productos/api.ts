@@ -69,6 +69,8 @@ export interface EditarProductoInput {
   marca?: string;
   precio?: number;
   stock?: number;
+  talla?: string;
+  categoriaId?: number;
   descuentoTipo?: TipoDescuento | null;
   descuentoValor?: number | null;
 }

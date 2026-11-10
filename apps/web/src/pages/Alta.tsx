@@ -67,9 +67,9 @@ export function Alta({
   }, [cargarCategorias]);
 
   // Precarga el formulario al entrar en modo edición (HU-2.5, desde Reportes).
-  // La categoría y la talla no son editables: el backend solo permite cambiar
-  // nombre, marca, precio, cantidad en inventario y descuento de vestido
-  // (ver productos.service.ts).
+  // La categoría solo se puede mover a otra con el mismo tipo de talla (ver
+  // productos.service.ts): así la talla ya guardada sigue siendo válida sin
+  // tener que volver a elegirla.
   useEffect(() => {
     if (!productoEnEdicion) return;
     setModo('unica');
@@ -90,8 +90,20 @@ export function Alta({
   const opcionesTalla = categoria ? TALLAS_POR_TIPO[categoria.tipoTalla] : null;
   const esVestido = categoria?.tipoTalla === 'sin_talla';
 
+  // En edición, solo se puede mover el producto a una categoría con el
+  // mismo tipo de talla que la original (nunca la que trae el producto en
+  // sí, que puede cambiar mientras se edita) — así la talla actual siempre
+  // sigue siendo válida sin tener que volver a elegirla.
+  const categoriaOriginal = editando
+    ? categorias.find((c) => c.id === productoEnEdicion?.categoriaId)
+    : undefined;
+  const categoriasElegibles = categoriaOriginal
+    ? categorias.filter((c) => c.tipoTalla === categoriaOriginal.tipoTalla)
+    : categorias;
+
   function elegirCategoria(c: Categoria) {
     setCategoriaId(c.id);
+    if (editando) return; // mismo tipo de talla por construcción: talla/descuento se quedan igual
     setTalla(tallaPorDefecto(c));
     setDescuentoVestido(null);
   }
@@ -129,6 +141,8 @@ export function Alta({
           marca: marca.trim(),
           precio: precioNumero,
           stock: stockNumero,
+          talla: esVestido ? undefined : talla,
+          categoriaId: categoriaId ?? undefined,
           descuentoTipo: descuentoVestido?.tipo ?? null,
           descuentoValor: descuentoVestido?.valor ?? null,
         });
@@ -202,8 +216,8 @@ export function Alta({
       <div className={styles.form}>
         {editando ? (
           <div className={styles.aviso}>
-            Editando <strong>{productoEnEdicion?.sku}</strong> · la categoría y la talla no se pueden
-            cambiar aquí.
+            Editando <strong>{productoEnEdicion?.sku}</strong> · la categoría solo se puede mover a otra
+            con el mismo tipo de talla.
           </div>
         ) : (
           <div className={styles.segmented}>
@@ -272,11 +286,10 @@ export function Alta({
         <div className={styles.campo}>
           <label className={styles.label}>Categoría</label>
           <div className={styles.chips}>
-            {categorias.map((c) => (
+            {categoriasElegibles.map((c) => (
               <button
                 key={c.id}
                 type="button"
-                disabled={editando}
                 className={c.id === categoriaId ? styles.chipCategoriaActiva : styles.chipCategoria}
                 onClick={() => elegirCategoria(c)}
               >
@@ -302,7 +315,6 @@ export function Alta({
                 <button
                   key={t}
                   type="button"
-                  disabled={editando}
                   className={t === talla ? styles.chipTallaActiva : styles.chipTalla}
                   onClick={() => setTalla(t)}
                 >

@@ -260,6 +260,8 @@ export interface EditarProductoInput {
   marca?: string;
   precio?: number;
   stock?: number;
+  talla?: string;
+  categoriaId?: number;
   descuentoTipo?: TipoDescuento | null;
   descuentoValor?: number | null;
 }
@@ -285,14 +287,31 @@ export function editar(
     throw new ValidationError('Captura una cantidad de inventario válida');
   }
 
-  const categoria = buscarCategoria(db, actual.categoria_id);
+  const categoriaActual = buscarCategoria(db, actual.categoria_id);
+  // La categoría solo se puede mover a otra con el mismo tipo de talla: así
+  // la talla ya guardada sigue siendo válida sin tener que volver a elegirla,
+  // y no hace falta decidir qué pasa si el tipo de talla cambiara a mitad
+  // de la edición (p. ej. de pantalón numérico a sin_talla).
+  let categoriaDestino = categoriaActual;
+  if (cambios.categoriaId !== undefined && cambios.categoriaId !== actual.categoria_id) {
+    const nuevaCategoria = buscarCategoria(db, cambios.categoriaId);
+    if (nuevaCategoria.tipo_talla !== categoriaActual.tipo_talla) {
+      throw new ValidationError('Solo puedes mover el producto a una categoría con el mismo tipo de talla');
+    }
+    categoriaDestino = nuevaCategoria;
+  }
+
+  const talla =
+    cambios.talla !== undefined ? normalizarTalla(categoriaDestino, cambios.talla) : actual.talla;
+
   const tocaDescuento = cambios.descuentoTipo !== undefined || cambios.descuentoValor !== undefined;
   const descuento = tocaDescuento
-    ? normalizarDescuentoVestido(categoria, cambios.descuentoTipo, cambios.descuentoValor)
+    ? normalizarDescuentoVestido(categoriaDestino, cambios.descuentoTipo, cambios.descuentoValor)
     : { descuentoTipo: actual.descuento_tipo, descuentoValor: actual.descuento_valor };
 
   db.prepare(
     `UPDATE productos SET nombre=@nombre, marca=@marca, precio=@precio, stock=@stock,
+       talla=@talla, categoria_id=@categoriaId,
        descuento_tipo=@descuentoTipo, descuento_valor=@descuentoValor, updated_at=datetime('now')
      WHERE id=@id`,
   ).run({
@@ -301,16 +320,25 @@ export function editar(
     marca,
     precio,
     stock,
+    talla,
+    categoriaId: categoriaDestino.id,
     descuentoTipo: descuento.descuentoTipo,
     descuentoValor: descuento.descuentoValor,
   });
 
+  const detalleCambios = {
+    ...(stock !== actual.stock ? { stockAnterior: actual.stock, stockNuevo: stock } : {}),
+    ...(talla !== actual.talla ? { tallaAnterior: actual.talla, tallaNueva: talla } : {}),
+    ...(categoriaDestino.id !== actual.categoria_id
+      ? { categoriaAnteriorId: actual.categoria_id, categoriaNuevaId: categoriaDestino.id }
+      : {}),
+  };
   registrarAuditoria(db, {
     usuarioId: actorId,
     accion: 'producto.editar',
     entidad: 'producto',
     entidadId: id,
-    detalle: stock !== actual.stock ? { stockAnterior: actual.stock, stockNuevo: stock } : undefined,
+    detalle: Object.keys(detalleCambios).length > 0 ? detalleCambios : undefined,
   });
 
   return aPublico(db.prepare('SELECT * FROM productos WHERE id = ?').get(id) as ProductoRow);

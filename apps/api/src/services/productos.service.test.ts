@@ -7,6 +7,7 @@ let db: Database.Database;
 let mezclillaId: number;
 let blusasId: number;
 let vestidosId: number;
+let chamarrasId: number;
 
 const ACTOR_ID = 1;
 
@@ -24,6 +25,10 @@ beforeEach(() => {
   );
   vestidosId = Number(
     db.prepare("INSERT INTO categorias (nombre, tipo_talla) VALUES ('Vestidos','sin_talla')").run()
+      .lastInsertRowid,
+  );
+  chamarrasId = Number(
+    db.prepare("INSERT INTO categorias (nombre, tipo_talla) VALUES ('Chamarras','estandar_ropa')").run()
       .lastInsertRowid,
   );
 });
@@ -326,6 +331,49 @@ describe('editar', () => {
     );
     expect(() => productos.editar(db, p.id, { stock: 2.5 }, ACTOR_ID)).toThrow(
       'Captura una cantidad de inventario válida',
+    );
+  });
+
+  it('permite corregir la talla dentro de la misma categoría', () => {
+    const p = productos.crear(
+      db,
+      { nombre: 'Jean recto', marca: 'Levis', categoriaId: mezclillaId, talla: '7', precio: 590 },
+      ACTOR_ID,
+    );
+    const editado = productos.editar(db, p.id, { talla: '9' }, ACTOR_ID);
+    expect(editado.talla).toBe('9');
+  });
+
+  it('rechaza una talla inválida para la categoría actual', () => {
+    const p = productos.crear(
+      db,
+      { nombre: 'Jean recto', marca: 'Levis', categoriaId: mezclillaId, talla: '7', precio: 590 },
+      ACTOR_ID,
+    );
+    expect(() => productos.editar(db, p.id, { talla: 'M' }, ACTOR_ID)).toThrow(
+      'Selecciona una talla válida para esta categoría',
+    );
+  });
+
+  it('permite mover el producto a otra categoría con el mismo tipo de talla', () => {
+    const p = productos.crear(
+      db,
+      { nombre: 'Blusa lino', marca: 'Zara', categoriaId: blusasId, talla: 'M', precio: 420 },
+      ACTOR_ID,
+    );
+    const editado = productos.editar(db, p.id, { categoriaId: chamarrasId }, ACTOR_ID);
+    expect(editado.categoriaId).toBe(chamarrasId);
+    expect(editado.talla).toBe('M');
+  });
+
+  it('rechaza mover el producto a una categoría con otro tipo de talla', () => {
+    const p = productos.crear(
+      db,
+      { nombre: 'Blusa lino', marca: 'Zara', categoriaId: blusasId, talla: 'M', precio: 420 },
+      ACTOR_ID,
+    );
+    expect(() => productos.editar(db, p.id, { categoriaId: mezclillaId }, ACTOR_ID)).toThrow(
+      'Solo puedes mover el producto a una categoría con el mismo tipo de talla',
     );
   });
 });

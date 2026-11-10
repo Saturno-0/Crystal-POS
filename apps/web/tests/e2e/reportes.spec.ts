@@ -28,7 +28,9 @@ test.describe('Reportes y comisiones (HU-5.1 a HU-5.5, HU-2.5, HU-6.5)', () => {
 
     // Inventario: editar navega a Alta con el formulario precargado.
     await expect(page.getByText('Reporte UX inventario')).toBeVisible();
-    const filaProducto = page.locator('text=Reporte UX inventario').locator('..').locator('..');
+    const filaProducto = page
+      .locator('[class*="filaProducto"]')
+      .filter({ hasText: 'Reporte UX inventario' });
     await filaProducto.getByRole('button', { name: 'Editar', exact: true }).click();
     await expect(page.getByText(/Editando/)).toBeVisible();
     await expect(page.getByPlaceholder('Ej. Jean recto tiro alto')).toHaveValue('Reporte UX inventario');
@@ -54,7 +56,9 @@ test.describe('Reportes y comisiones (HU-5.1 a HU-5.5, HU-2.5, HU-6.5)', () => {
     });
 
     await irA(page, 'Reportes');
-    const filaProducto = page.locator('text=Ajuste stock UX test').locator('..').locator('..');
+    const filaProducto = page
+      .locator('[class*="filaProducto"]')
+      .filter({ hasText: 'Ajuste stock UX test' });
     await expect(filaProducto.getByText('5 stock')).toBeVisible();
 
     await filaProducto.getByRole('button', { name: 'Editar', exact: true }).click();
@@ -65,8 +69,47 @@ test.describe('Reportes y comisiones (HU-5.1 a HU-5.5, HU-2.5, HU-6.5)', () => {
     await expect(page.getByText('Ajuste stock UX test actualizado')).toBeVisible();
 
     await irA(page, 'Reportes');
-    const filaActualizada = page.locator('text=Ajuste stock UX test').locator('..').locator('..');
+    const filaActualizada = page
+      .locator('[class*="filaProducto"]')
+      .filter({ hasText: 'Ajuste stock UX test' });
     await expect(filaActualizada.getByText('2 stock')).toBeVisible();
+  });
+
+  test('inventario: corregir talla y mover a otra categoría compatible desde Editar', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await crearProducto(page, {
+      nombre: 'Blusa talla UX test',
+      marca: 'TestMarca',
+      precio: 350,
+      categoria: 'Blusas',
+      talla: 'M',
+    });
+
+    await irA(page, 'Reportes');
+    const filaProducto = page
+      .locator('[class*="filaProducto"]')
+      .filter({ hasText: 'Blusa talla UX test' });
+    await filaProducto.getByRole('button', { name: 'Editar', exact: true }).click();
+    await expect(page.getByText(/Editando/)).toBeVisible();
+
+    // Mezclilla es numerica_pantalon (incompatible); Chamarras es
+    // estandar_ropa como Blusas, así que solo esta última debe ofrecerse.
+    await expect(page.getByRole('button', { name: 'Mezclilla', exact: true })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: 'Chamarras', exact: true })).toBeVisible();
+
+    await page.getByRole('button', { name: 'L', exact: true }).click();
+    await page.getByRole('button', { name: 'Chamarras', exact: true }).click();
+    await page.getByRole('button', { name: 'Guardar cambios' }).click();
+    await expect(page.getByText('Blusa talla UX test actualizado')).toBeVisible();
+
+    await irA(page, 'Reportes');
+    const filaActualizada = page
+      .locator('[class*="filaProducto"]')
+      .filter({ hasText: 'Blusa talla UX test' });
+    await expect(filaActualizada.getByText('talla L')).toBeVisible();
+    await filaActualizada.getByRole('button', { name: 'Editar', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Chamarras', exact: true })).toHaveClass(/chipCategoriaActiva/);
+    await expect(page.getByRole('button', { name: 'L', exact: true })).toHaveClass(/chipTallaActiva/);
   });
 
   test('el rail de navegación permanece fijo al hacer scroll dentro de Reportes', async ({ page }) => {
