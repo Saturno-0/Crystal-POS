@@ -119,6 +119,31 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     }
   });
 
+  test('alta por tallas en móvil: la tarjeta y los campos caben en la pantalla', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Alta');
+
+    await page.getByPlaceholder('Ej. Jean recto tiro alto').fill('Pantalon movil UX test');
+    await page.getByPlaceholder('Marca').fill('Ciclon');
+    await page.getByPlaceholder('$0.00').fill('350');
+    await page.getByRole('button', { name: 'Mezclilla', exact: true }).click();
+    await page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }).click();
+
+    const cajaTarjeta = await page.getByText('Cantidad por talla').locator('..').boundingBox();
+    expect(cajaTarjeta).not.toBeNull();
+    // La tarjeta no debe ser más ancha que la pantalla (antes medía 420 px fijos).
+    expect(cajaTarjeta!.x + cajaTarjeta!.width).toBeLessThanOrEqual(360);
+
+    for (const talla of ['1', '3', '5', '7', '9', '11', '13', '15']) {
+      const campo = page.getByLabel(`Cantidad talla ${talla}`, { exact: true });
+      const caja = await campo.boundingBox();
+      expect(caja).not.toBeNull();
+      expect(caja!.x + caja!.width).toBeLessThanOrEqual(cajaTarjeta!.x + cajaTarjeta!.width + 1);
+      await expect(campo).toHaveAttribute('maxlength', '3');
+    }
+  });
+
   test('alta por tallas no aparece para vestidos (sin_talla)', async ({ page }) => {
     await login(page, 'Crystal Domínguez');
     await irA(page, 'Alta');

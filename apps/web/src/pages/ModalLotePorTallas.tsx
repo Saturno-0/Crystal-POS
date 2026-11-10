@@ -14,7 +14,7 @@ export function ModalLotePorTallas({
   const [cantidades, setCantidades] = useState<Record<string, number>>({});
 
   function setCantidad(talla: string, valorCrudo: string) {
-    const valor = valorCrudo.replace(/[^0-9]/g, '');
+    const valor = valorCrudo.replace(/[^0-9]/g, '').slice(0, 3);
     setCantidades((prev) => ({ ...prev, [talla]: valor === '' ? 0 : Number(valor) }));
   }
 
@@ -32,9 +32,12 @@ export function ModalLotePorTallas({
         position: 'fixed',
         inset: 0,
         background: 'rgba(10,10,12,.55)',
-        display: 'grid',
-        placeItems: 'center',
-        padding: 24,
+        // Flex (no grid + placeItems): con grid la pista se ensancha al
+        // width fijo de la tarjeta y maxWidth:100% nunca la limita en móvil.
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
         zIndex: 100,
       }}
     >
@@ -60,7 +63,7 @@ export function ModalLotePorTallas({
           capturados arriba se aplican a todas. Las tallas en 0 no se dan de alta.
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10 }}>
           {tallas.map((talla) => (
             <div key={talla} style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <div
@@ -83,9 +86,11 @@ export function ModalLotePorTallas({
                 value={cantidades[talla] ? String(cantidades[talla]) : ''}
                 onChange={(e) => setCantidad(talla, e.target.value)}
                 inputMode="numeric"
+                maxLength={3}
                 placeholder="0"
                 style={{
-                  flex: 1,
+                  // Máximo 3 cifras: ancho fijo chico en vez de estirarse.
+                  width: 64,
                   minWidth: 0,
                   height: 44,
                   borderRadius: 8,
