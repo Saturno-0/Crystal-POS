@@ -60,4 +60,24 @@ test.describe('Venta (HU-3.1 a HU-3.6)', () => {
     await pasarela.getByRole('button', { name: 'Confirmar e imprimir ticket' }).click();
     await expect(page.getByText('Venta completada')).toBeVisible();
   });
+
+  test('con muchas líneas el botón de cobrar sigue visible sin hacer scroll', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 600 });
+    await login(page, 'Crystal Domínguez');
+    for (const n of [1, 2, 3, 4]) {
+      await crearProducto(page, { nombre: `Venta UX largo ${n}`, marca: 'TestMarca', precio: 100 * n, categoria: 'Blusas', talla: 'S' });
+    }
+
+    await irA(page, 'Venta');
+    await page.getByPlaceholder('Buscar nombre, marca o SKU…').fill('Venta UX largo');
+    for (const n of [1, 2, 3, 4]) await page.getByText(`Venta UX largo ${n}`).click();
+    await page.getByRole('button', { name: 'Apartado', exact: true }).click();
+
+    // El pie del ticket (total + botón) queda dentro de la ventana; solo la
+    // lista de líneas hace scroll.
+    const boton = page.getByRole('button', { name: 'Apartar e imprimir recibo' });
+    const caja = await boton.boundingBox();
+    expect(caja).not.toBeNull();
+    expect(caja!.y + caja!.height).toBeLessThanOrEqual(600);
+  });
 });

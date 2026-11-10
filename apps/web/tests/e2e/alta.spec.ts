@@ -64,6 +64,8 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await page.getByPlaceholder('$0.00').fill('350');
     await page.getByRole('button', { name: 'Mezclilla', exact: true }).click();
 
+    await page.getByRole('button', { name: 'Por lote' }).click();
+
     await page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }).click();
     await expect(page.getByLabel('Cantidad talla 1', { exact: true })).toBeVisible();
 
@@ -76,8 +78,33 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
 
     await irA(page, 'Venta');
     await page.getByPlaceholder('Buscar nombre, marca o SKU…').fill('Pantalon Ciclon UX test');
-    await expect(page.getByText('talla 1')).toBeVisible();
-    await expect(page.getByText('talla 3')).toBeVisible();
+    // En Venta las 2 tallas se ven como un solo producto con el stock sumado.
+    await expect(page.getByText('Pantalon Ciclon UX test')).toHaveCount(1);
+    await expect(page.getByText('tallas 1, 3')).toBeVisible();
+    await expect(page.getByText('8 u', { exact: true })).toBeVisible();
+
+    // Al tocarlo se elige la talla, con su existencia.
+    await page.getByText('Pantalon Ciclon UX test').click();
+    const selector = page.getByRole('dialog', { name: 'Elegir talla de Pantalon Ciclon UX test' });
+    await expect(selector.getByRole('button', { name: 'Talla 1 · 3 disponibles' })).toBeVisible();
+    await expect(selector.getByRole('button', { name: 'Talla 3 · 5 disponibles' })).toBeVisible();
+    await selector.getByRole('button', { name: 'Talla 3 · 5 disponibles' }).click();
+    await expect(selector).not.toBeVisible();
+
+    await expect(page.getByText('Subtotal · 1 pzas')).toBeVisible();
+  });
+
+  test('pieza única no ofrece alta por tallas', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Alta');
+    await page.getByRole('button', { name: 'Mezclilla', exact: true }).click();
+    await expect(
+      page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }),
+    ).not.toBeVisible();
+    await page.getByRole('button', { name: 'Por lote' }).click();
+    await expect(
+      page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }),
+    ).toBeVisible();
   });
 
   test('alta por tallas: el botón de confirmar queda deshabilitado sin cantidades', async ({ page }) => {
@@ -88,6 +115,7 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await page.getByPlaceholder('Marca').fill('Ciclon');
     await page.getByPlaceholder('$0.00').fill('350');
     await page.getByRole('button', { name: 'Mezclilla', exact: true }).click();
+    await page.getByRole('button', { name: 'Por lote' }).click();
     await page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }).click();
 
     await expect(page.getByRole('button', { name: 'Dar de alta 0 piezas' })).toBeDisabled();
@@ -103,6 +131,7 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await page.getByPlaceholder('Marca').fill('Ciclon');
     await page.getByPlaceholder('$0.00').fill('350');
     await page.getByRole('button', { name: 'Mezclilla', exact: true }).click();
+    await page.getByRole('button', { name: 'Por lote' }).click();
     await page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }).click();
 
     const tarjeta = page.getByText('Cantidad por talla').locator('..');
@@ -128,6 +157,7 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await page.getByPlaceholder('Marca').fill('Ciclon');
     await page.getByPlaceholder('$0.00').fill('350');
     await page.getByRole('button', { name: 'Mezclilla', exact: true }).click();
+    await page.getByRole('button', { name: 'Por lote' }).click();
     await page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }).click();
 
     const cajaTarjeta = await page.getByText('Cantidad por talla').locator('..').boundingBox();
@@ -152,6 +182,8 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await page.getByPlaceholder('Marca').fill('TestMarca');
     await page.getByPlaceholder('$0.00').fill('800');
     await page.getByRole('button', { name: 'Vestidos', exact: true }).click();
+
+    await page.getByRole('button', { name: 'Por lote' }).click();
 
     await expect(
       page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }),

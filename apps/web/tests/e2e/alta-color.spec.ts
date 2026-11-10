@@ -25,6 +25,8 @@ test.describe('Alta por color (sacos, pantalones de vestir)', () => {
     await page.getByRole('button', { name: 'Dar de alta 1 pieza' }).click();
     await expect(page.getByText('Elige el color del producto')).toBeVisible();
 
+    await page.getByRole('button', { name: 'Por lote' }).click();
+
     await page.getByRole('button', { name: 'Alta por color y talla (varias cantidades a la vez)' }).click();
     const modal = page.getByText('Cantidad por color y talla').locator('..');
     await expect(modal).toBeVisible();
@@ -45,6 +47,16 @@ test.describe('Alta por color (sacos, pantalones de vestir)', () => {
     // La búsqueda incluye el color: solo queda el SKU verde olivo.
     await expect(page.getByText('Saco color UX test')).toHaveCount(1);
     await expect(page.getByText(/talla XS\s*· Verde olivo/)).toBeVisible();
+
+    // Sin filtro: los 3 SKUs son una sola tarjeta; la talla se elige por color.
+    await page.getByPlaceholder('Buscar nombre, marca o SKU…').fill('Saco color UX test');
+    await expect(page.getByText('Saco color UX test')).toHaveCount(1);
+    await expect(page.getByText(/2 colores/)).toBeVisible();
+    await page.getByText('Saco color UX test').click();
+    const selector = page.getByRole('dialog', { name: 'Elegir talla de Saco color UX test' });
+    await expect(selector.getByRole('button', { name: 'Talla S Negro · 2 disponibles' })).toBeVisible();
+    await selector.getByRole('button', { name: 'Talla XS Verde olivo · 4 disponibles' }).click();
+    await expect(page.getByText('Subtotal · 1 pzas')).toBeVisible();
   });
 
   test('en móvil el modal color × talla cabe en la pantalla', async ({ page }) => {
@@ -57,6 +69,7 @@ test.describe('Alta por color (sacos, pantalones de vestir)', () => {
     await page.getByPlaceholder('Marca').fill('Sastre');
     await page.getByPlaceholder('$0.00').fill('800');
     await page.getByRole('button', { name: 'Pantalones de vestir', exact: true }).click();
+    await page.getByRole('button', { name: 'Por lote' }).click();
     await page.getByRole('button', { name: 'Alta por color y talla (varias cantidades a la vez)' }).click();
     const modal = page.getByText('Cantidad por color y talla').locator('..');
     await modal.getByRole('button', { name: 'Gris', exact: true }).click();

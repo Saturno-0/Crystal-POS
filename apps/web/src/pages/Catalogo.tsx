@@ -1,8 +1,10 @@
 import type { Categoria, Producto } from '@crystal/shared';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useToast } from '../components/feedback/ToastProvider';
+import { agruparPorModelo, type ModeloCatalogo } from '../features/productos/agrupar';
 import * as productosApi from '../features/productos/api';
 import styles from './Catalogo.module.css';
+import { SelectorTalla } from './SelectorTalla';
 
 const formatoMXN = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 
@@ -22,6 +24,10 @@ export function Catalogo({
   const [productos, setProductos] = useState<Producto[]>([]);
   const [totalCatalogo, setTotalCatalogo] = useState(0);
   const [cargando, setCargando] = useState(true);
+  const [modeloAbierto, setModeloAbierto] = useState<ModeloCatalogo | null>(null);
+  // Las prendas dadas de alta por tallas son un producto/SKU por talla; aquí
+  // se juntan en una sola tarjeta y la talla se elige al agregarla.
+  const modelos = useMemo(() => agruparPorModelo(productos), [productos]);
 
   useEffect(() => {
     productosApi.listarCategorias().then(setCategorias);
@@ -38,7 +44,7 @@ export function Catalogo({
       .listarProductos({ busqueda: busqueda || undefined, categoriaId: categoriaId ?? undefined })
       .then(setProductos)
       .finally(() => setCargando(false));
-    productosApi.listarProductos().then((lista) => setTotalCatalogo(lista.length));
+    productosApi.listarProductos().then((lista) => setTotalCatalogo(agruparPorModelo(lista).length));
     // refrescarSenal cambia tras cada venta, para reflejar el stock recién descontado.
   }, [busqueda, categoriaId, refrescarSenal]);
 
@@ -79,34 +85,66 @@ export function Catalogo({
       </div>
 
       <div className={styles.grid}>
-        {!cargando && productos.length === 0 && (
+        {!cargando && modelos.length === 0 && (
           <div className={styles.vacio}>Sin resultados para esa búsqueda.</div>
         )}
-        {productos.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            className={p.stock === 0 ? styles.tarjetaAgotada : styles.tarjeta}
-            onClick={() => (p.stock === 0 ? mostrar(`Sin existencias de ${p.nombre}`) : onAgregar(p))}
-          >
-            <div className={styles.filaSuperior}>
-              <span className={styles.sku}>{p.sku}</span>
-              <span className={styles.badgeStock} style={badgeStyle(p.stock)}>
-                {p.stock} u
-              </span>
-            </div>
-            <div className={styles.nombre}>{p.nombre}</div>
-            <div className={styles.detalle}>
-              {p.marca} · talla {p.talla ?? 'Única'}
-                  {p.color ? ` · ${p.color}` : ''}
-            </div>
-            <div className={styles.pie}>
-              <span className={styles.precio}>{formatoMXN.format(p.precio)}</span>
-              <span className={styles.agregar}>+ agregar</span>
-            </div>
-          </button>
-        ))}
+        {modelos.map((m) => {
+          const p = m.base;
+          const varias = m.variantes.length > 1;
+          const colores = [...new Set(m.variantes.map((v) => v.color).filter(Boolean))];
+          const tallasDisponibles = [...new Set(m.variantes.filter((v) => v.stock > 0).map((v) => v.talla))];
+          return (
+            <button
+              key={m.clave}
+              type="button"
+              className={m.stockTotal === 0 ? styles.tarjetaAgotada : styles.tarjeta}
+              onClick={() => {
+                if (m.stockTotal === 0) mostrar(`Sin existencias de ${p.nombre}`);
+                else if (varias) setModeloAbierto(m);
+                else onAgregar(p);
+              }}
+            >
+              <div className={styles.filaSuperior}>
+                <span className={styles.sku}>
+                  {varias ? `${m.variantes.length} ${colores.length > 1 ? 'variantes' : 'tallas'}` : p.sku}
+                </span>
+                <span className={styles.badgeStock} style={badgeStyle(m.stockTotal)}>
+                  {m.stockTotal} u
+                </span>
+              </div>
+              <div className={styles.nombre}>{p.nombre}</div>
+              <div className={styles.detalle}>
+                {varias ? (
+                  <>
+                    {p.marca} · tallas {tallasDisponibles.join(', ') || '—'}
+                    {colores.length > 1 ? ` · ${colores.length} colores` : colores[0] ? ` · ${colores[0]}` : ''}
+                  </>
+                ) : (
+                  <>
+                    {p.marca} · talla {p.talla ?? 'Única'}
+                    {p.color ? ` · ${p.color}` : ''}
+                  </>
+                )}
+              </div>
+              <div className={styles.pie}>
+                <span className={styles.precio}>{formatoMXN.format(p.precio)}</span>
+                <span className={styles.agregar}>{varias ? '+ elegir talla' : '+ agregar'}</span>
+              </div>
+            </button>
+          );
+        })}
       </div>
+
+      {modeloAbierto && (
+        <SelectorTalla
+          modelo={modeloAbierto}
+          onCerrar={() => setModeloAbierto(null)}
+          onElegir={(producto) => {
+            onAgregar(producto);
+            setModeloAbierto(null);
+          }}
+        />
+      )}
     </div>
   );
 }

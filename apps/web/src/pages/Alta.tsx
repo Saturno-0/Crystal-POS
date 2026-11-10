@@ -355,7 +355,8 @@ export function Alta({
           </div>
         )}
 
-        {!editando && !esVestido && (
+        {/* Pieza única = 1 pieza, 1 talla: el alta por tallas solo tiene sentido en "Por lote". */}
+        {!editando && !esVestido && modo === 'lote' && (
           <button type="button" className={styles.btnLotePorTallas} onClick={abrirModalTallas}>
             {porColor
               ? 'Alta por color y talla (varias cantidades a la vez)'
