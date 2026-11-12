@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { db, dbPath } from './db/client.js';
 import { iniciarRespaldosAutomaticos } from './db/respaldoScheduler.js';
+import accesoRoutes from './routes/acceso.routes.js';
 import actualizacionRoutes from './routes/actualizacion.routes.js';
 import apartadosRoutes from './routes/apartados.routes.js';
 import authRoutes from './routes/auth.routes.js';
@@ -28,6 +29,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true, tablas: n });
 });
 
+app.use('/api/acceso', accesoRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/categorias', categoriasRoutes);
