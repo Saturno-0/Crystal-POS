@@ -126,7 +126,7 @@ Impresora confirmada: térmica genérica **POS-58** (58 mm, USB, ESC/POS), vía 
 impresora normal del sistema operativo — nunca ESC/POS directo desde la app (decisión de
 alcance en `docs/MODELO_DATOS.md`). `TicketModal.tsx` y `ReciboApartado.tsx` llaman
 `window.print()` al montarse (más un botón "Imprimir de nuevo" como respaldo); `print.css`
-fija el ancho imprimible a 54 mm con `@page { size: 58mm auto }`. En dev, `<StrictMode>`
+fija el ancho imprimible a 48 mm con `@page { size: 58mm auto }`. En dev, `<StrictMode>`
 duplica el efecto de montaje (comportamiento normal de React, no ocurre en el build de
 producción) — por eso `tests/e2e/impresion.spec.ts` solo exige "al menos una" llamada, no
 exactamente una.

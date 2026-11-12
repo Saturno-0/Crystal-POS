@@ -1,7 +1,7 @@
 /* Estilos compartidos por TicketModal.tsx y ReciboApartado.tsx. En pantalla
    se ven como el modal de siempre; en impresión (térmica 58mm, ver print.css
    para el recorte de página) cada clase baja a un tamaño pensado para un
-   rollo de 54mm imprimibles — los tamaños de pantalla (17-22px) se veían
+   rollo de 48mm imprimibles — los tamaños de pantalla (17-22px) se veían
    amontonados/encimados tal cual en un papel tan angosto. */
 
 .negocioNombre {
@@ -97,37 +97,80 @@
   cursor: pointer;
 }
 
+/* Impresión térmica (POS-58, 48 mm imprimibles ≈ 181 px CSS). La térmica solo
+   imprime negro puro: grises y fondos de color salen tenues o desaparecen
+   (por eso el folio, verde sobre verde claro, no se veía). Todo va en negro,
+   sin fondos, con pesos ≥ 500 y tamaños ≥ 11 px para que se lea. Los colores
+   (--muted, --border2…) se fuerzan a negro en print.css. */
 @media print {
   .negocioNombre {
-    font-size: 13px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
   }
-  .negocioMeta,
-  .fechaAtendio,
+  .negocioMeta {
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .separador {
+    border-top: 1.5px dashed #000;
+    margin: 1mm 0;
+  }
   .folio {
-    font-size: 9px;
+    align-self: center;
+    background: none;
+    border: 1.5px solid #000;
+    border-radius: 0;
+    padding: 4px 10px;
+    font-size: 16px;
+    font-weight: 800;
   }
   .titulo {
-    font-size: 14px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 800;
+    text-transform: uppercase;
   }
-  .metaTexto,
-  .lineaProducto,
+  .fechaAtendio,
+  .metaTexto {
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 500;
+  }
+  .lineaProducto {
+    font-size: 13px;
+    font-weight: 500;
+  }
   .lineaImporte {
-    font-size: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
   }
   .totalLabel {
-    font-size: 10.5px;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
   }
   .totalValor {
-    font-size: 15px;
+    font-size: 18px;
+    font-weight: 800;
+    white-space: nowrap;
   }
-  .notaCambio,
+  .notaCambio {
+    font-size: 12px;
+    font-weight: 500;
+  }
   .vence {
-    font-size: 9.5px;
+    background: none;
+    border: 1.5px solid #000;
+    border-radius: 0;
+    padding: 6px;
+    font-size: 12px;
+    font-weight: 600;
   }
   .leyenda {
-    font-size: 8.5px;
-  }
-  .vence {
-    padding: 6px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
   }
 }

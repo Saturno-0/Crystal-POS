@@ -57,7 +57,7 @@ test.describe('Impresión de ticket (HU-3.6, impresora POS-58 confirmada)', () =
     expect(llamadas).toBeGreaterThanOrEqual(1); // StrictMode duplica efectos en dev, ver nota arriba
   });
 
-  test('el recibo imprimible usa el ancho del rollo de 58mm (54mm imprimibles)', async ({ page }) => {
+  test('el recibo imprimible usa el ancho del rollo de 58mm (48mm imprimibles)', async ({ page }) => {
     await login(page, 'Crystal Domínguez');
     await crearProducto(page, { nombre: 'Impresión UX ancho', marca: 'TestMarca', precio: 300, categoria: 'Blusas', talla: 'L' });
 
@@ -73,12 +73,12 @@ test.describe('Impresión de ticket (HU-3.6, impresora POS-58 confirmada)', () =
     await page.emulateMedia({ media: 'print' });
     const recibo = page.locator('.recibo-imprimible');
     const anchoPx = await recibo.evaluate((el) => el.getBoundingClientRect().width);
-    // 54mm a 96dpi (unidad CSS estándar para impresión) ≈ 204px. Con margen de
+    // 48mm (área imprimible del driver POS-58) a 96dpi ≈ 181px. Con margen de
     // tolerancia por redondeo del motor de layout.
-    expect(anchoPx).toBeGreaterThan(190);
-    expect(anchoPx).toBeLessThan(220);
+    expect(anchoPx).toBeGreaterThan(175);
+    expect(anchoPx).toBeLessThan(188);
   });
-  test('en móvil la pasarela y el ticket caben en pantalla, y al imprimir el recibo sigue a 54 mm', async ({ page }) => {
+  test('en móvil la pasarela y el ticket caben en pantalla, y al imprimir el recibo sigue a 48 mm', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 740 });
     await login(page, 'Crystal Domínguez');
     await crearProducto(page, { nombre: 'Impresión UX movil', marca: 'TestMarca', precio: 250, categoria: 'Blusas', talla: 'S' });
@@ -103,12 +103,12 @@ test.describe('Impresión de ticket (HU-3.6, impresora POS-58 confirmada)', () =
     expect(cajaRecibo!.x).toBeGreaterThanOrEqual(0);
     expect(cajaRecibo!.x + cajaRecibo!.width).toBeLessThanOrEqual(360);
 
-    // Impresión: el recibo se pega arriba a la izquierda y mide 54 mm (~204 px),
+    // Impresión: el recibo se pega arriba a la izquierda y mide 48 mm (~181 px),
     // sin importar cómo lo centre el modal en pantalla.
     await page.emulateMedia({ media: 'print' });
     const enPapel = await recibo.boundingBox();
     expect(enPapel!.x).toBe(0);
     expect(enPapel!.y).toBe(0);
-    expect(Math.round(enPapel!.width)).toBe(204);
+    expect(Math.round(enPapel!.width)).toBe(181);
   });
 });
