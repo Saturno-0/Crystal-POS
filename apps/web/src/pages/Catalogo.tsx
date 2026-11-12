@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useToast } from '../components/feedback/ToastProvider';
 import { agruparPorModelo, type ModeloCatalogo } from '../features/productos/agrupar';
 import * as productosApi from '../features/productos/api';
+import { ordenar, SelectorOrden, useOrdenGuardado } from '../features/productos/orden';
 import styles from './Catalogo.module.css';
 import { SelectorTalla } from './SelectorTalla';
 
@@ -27,7 +28,18 @@ export function Catalogo({
   const [modeloAbierto, setModeloAbierto] = useState<ModeloCatalogo | null>(null);
   // Las prendas dadas de alta por tallas son un producto/SKU por talla; aquí
   // se juntan en una sola tarjeta y la talla se elige al agregarla.
-  const modelos = useMemo(() => agruparPorModelo(productos), [productos]);
+  const [orden, setOrden] = useOrdenGuardado('venta');
+  const modelos = useMemo(
+    () =>
+      ordenar(agruparPorModelo(productos), orden, (m) => {
+        // "Más recientes" en un modelo agrupado = su talla/color más nuevo.
+        const masNueva = m.variantes.reduce((a, b) =>
+          b.createdAt.localeCompare(a.createdAt) > 0 || (b.createdAt === a.createdAt && b.id > a.id) ? b : a,
+        );
+        return { nombre: m.base.nombre, marca: m.base.marca, createdAt: masNueva.createdAt, id: masNueva.id };
+      }),
+    [productos, orden],
+  );
 
   useEffect(() => {
     productosApi.listarCategorias().then(setCategorias);
@@ -57,12 +69,15 @@ export function Catalogo({
   return (
     <div className={styles.contenedor}>
       <div className={styles.barra}>
-        <input
-          className={styles.buscador}
-          value={busquedaInput}
-          onChange={(e) => setBusquedaInput(e.target.value)}
-          placeholder="Buscar nombre, marca o SKU…"
-        />
+        <div className={styles.filaBusqueda}>
+          <input
+            className={styles.buscador}
+            value={busquedaInput}
+            onChange={(e) => setBusquedaInput(e.target.value)}
+            placeholder="Buscar nombre, marca o SKU…"
+          />
+          <SelectorOrden valor={orden} onChange={setOrden} />
+        </div>
         <div className={styles.categorias}>
           <button
             type="button"

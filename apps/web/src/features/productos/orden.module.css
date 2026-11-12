@@ -1,0 +1,22 @@
+.selector {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.etiqueta {
+  font: 500 11.5px/1 var(--font-ui);
+  color: var(--muted);
+}
+
+.select {
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 10px;
+  font: 500 13px/1 var(--font-ui);
+  cursor: pointer;
+}

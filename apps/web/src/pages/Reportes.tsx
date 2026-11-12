@@ -4,6 +4,7 @@ import { useToast } from '../components/feedback/ToastProvider';
 import * as actualizacionApi from '../features/actualizacion/api';
 import type { InfoActualizacion } from '../features/actualizacion/api';
 import * as productosApi from '../features/productos/api';
+import { ordenar, SelectorOrden, useOrdenGuardado } from '../features/productos/orden';
 import * as reportesApi from '../features/reportes/api';
 import type { Periodo, Reporte } from '../features/reportes/api';
 import * as respaldosApi from '../features/respaldos/api';
@@ -36,6 +37,8 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
   const [periodo, setPeriodo] = useState<Periodo>('mes');
   const [reporte, setReporte] = useState<Reporte | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [orden, setOrden] = useOrdenGuardado('inventario');
+  const productosOrdenados = ordenar(productos, orden, (p) => p);
   const [cargando, setCargando] = useState(true);
   const [exportando, setExportando] = useState(false);
   const [respaldos, setRespaldos] = useState<Respaldo[]>([]);
@@ -318,9 +321,12 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
       </div>
 
       <div className={styles.panel}>
-        <h2 className={styles.tituloPanel}>Inventario · {productos.length}</h2>
+        <div className={styles.tituloPanelFila}>
+          <h2 className={styles.tituloPanel}>Inventario · {productos.length}</h2>
+          <SelectorOrden valor={orden} onChange={setOrden} />
+        </div>
         <div className={styles.tablaInventario}>
-          {productos.map((p) => (
+          {productosOrdenados.map((p) => (
             <div key={p.id} className={styles.filaProducto}>
               <span>
                 <div>{p.nombre}</div>
@@ -342,7 +348,7 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
               </span>
             </div>
           ))}
-          {productos.length === 0 && <div className={styles.vacio}>Sin productos en el catálogo.</div>}
+          {productos.length === 0 && <div className={styles.vacio}>Sin productos con existencia.</div>}
         </div>
       </div>
     </div>

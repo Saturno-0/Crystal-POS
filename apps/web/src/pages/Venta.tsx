@@ -1,5 +1,5 @@
-import { calcularTotales, type MetodoPago } from '@crystal/shared';
-import { useState } from 'react';
+import { calcularTotales, type MetodoPago, type Producto } from '@crystal/shared';
+import { useEffect, useRef, useState } from 'react';
 import { useToast } from '../components/feedback/ToastProvider';
 import * as apartadosApi from '../features/apartados/api';
 import { useAuth } from '../features/auth/AuthContext';
@@ -14,20 +14,45 @@ import { TicketModal, type VentaParaTicket } from './TicketModal';
 import { TicketPanel, type DatosApartado, type ModoTicket } from './TicketPanel';
 import styles from './Venta.module.css';
 
-const APARTADO_INICIAL: DatosApartado = { clienteNombre: '', clienteTelefono: '', abonoInicial: '' };
+const APARTADO_INICIAL: DatosApartado = {
+  clienteNombre: '',
+  clienteTelefono: '',
+  abonoInicial: '',
+};
 
-export function Venta() {
+export function Venta({
+  productoParaVender,
+  onProductoAgregado,
+  onCambiarUsuario,
+}: {
+  /** Pieza recién dada de alta con "Dar de alta y vender ahora" (desde Alta). */
+  productoParaVender?: Producto | null;
+  onProductoAgregado?: () => void;
+  onCambiarUsuario: () => void;
+}) {
   const { mostrar } = useToast();
   const { usuario } = useAuth();
   const carrito = useCarrito();
+
+  // Ref: en dev, StrictMode corre el efecto dos veces con el mismo producto.
+  const ultimoAgregado = useRef<Producto | null>(null);
+  useEffect(() => {
+    if (!productoParaVender || ultimoAgregado.current === productoParaVender) return;
+    ultimoAgregado.current = productoParaVender;
+    carrito.agregar(productoParaVender);
+    onProductoAgregado?.();
+    mostrar(`${productoParaVender.nombre} agregado al ticket`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productoParaVender]);
   const [panelMovil, setPanelMovil] = useState<'catalogo' | 'ticket'>('catalogo');
   const [modo, setModo] = useState<ModoTicket>('directa');
   const [datosApartado, setDatosApartado] = useState<DatosApartado>(APARTADO_INICIAL);
   const [pasarelaAbierta, setPasarelaAbierta] = useState(false);
   const [refrescarSenal, setRefrescarSenal] = useState(0);
-  const [recibo, setRecibo] = useState<{ venta: VentaParaTicket; lineas: LineaCarritoCalculada[] } | null>(
-    null,
-  );
+  const [recibo, setRecibo] = useState<{
+    venta: VentaParaTicket;
+    lineas: LineaCarritoCalculada[];
+  } | null>(null);
   const [reciboApartado, setReciboApartado] = useState<apartadosApi.ApartadoCreado | null>(null);
 
   function cobrar() {
@@ -113,64 +138,77 @@ export function Venta() {
   const totalArticulos = carrito.calculadas.reduce((acc, c) => acc + c.resultado.importeLinea, 0);
 
   return (
-    <div className={styles.layout}>
-      <div className={styles.tabsMobile}>
-        <button
-          type="button"
-          className={panelMovil === 'catalogo' ? styles.tabBtnActivo : styles.tabBtn}
-          onClick={() => setPanelMovil('catalogo')}
-        >
-          Catálogo
-        </button>
-        <button
-          type="button"
-          className={panelMovil === 'ticket' ? styles.tabBtnActivo : styles.tabBtn}
-          onClick={() => setPanelMovil('ticket')}
-        >
-          Ticket · {carrito.piezas}
+    <div className={styles.pantalla}>
+      {/* Siempre visible: la venta y su comisión se acreditan a quien está en
+          sesión, así que el personal debe ver de un vistazo a nombre de quién vende. */}
+      <div className={styles.vendedor}>
+        <div className={styles.vendedorTexto}>
+          <span className={styles.vendedorEtiqueta}>Vendiendo como</span>
+          <span className={styles.vendedorNombre}>{usuario?.nombre}</span>
+        </div>
+        <button type="button" className={styles.btnCambiarUsuario} onClick={onCambiarUsuario}>
+          ¿No eres tú? Cambiar usuario
         </button>
       </div>
+      <div className={styles.layout}>
+        <div className={styles.tabsMobile}>
+          <button
+            type="button"
+            className={panelMovil === 'catalogo' ? styles.tabBtnActivo : styles.tabBtn}
+            onClick={() => setPanelMovil('catalogo')}
+          >
+            Catálogo
+          </button>
+          <button
+            type="button"
+            className={panelMovil === 'ticket' ? styles.tabBtnActivo : styles.tabBtn}
+            onClick={() => setPanelMovil('ticket')}
+          >
+            Ticket · {carrito.piezas}
+          </button>
+        </div>
 
-      <div className={`${styles.catalogoWrap} ${panelMovil === 'ticket' ? styles.oculto : ''}`}>
-        <Catalogo onAgregar={carrito.agregar} refrescarSenal={refrescarSenal} />
+        <div className={`${styles.catalogoWrap} ${panelMovil === 'ticket' ? styles.oculto : ''}`}>
+          <Catalogo onAgregar={carrito.agregar} refrescarSenal={refrescarSenal} />
+        </div>
+        <div className={`${styles.ticketWrap} ${panelMovil === 'catalogo' ? styles.oculto : ''}`}>
+          <TicketPanel
+            carrito={carrito}
+            modo={modo}
+            onModoChange={setModo}
+            apartado={datosApartado}
+            onApartadoChange={(cambios) => setDatosApartado((actual) => ({ ...actual, ...cambios }))}
+            onCobrar={cobrar}
+            onApartar={apartar}
+            onCancelar={cancelarTicket}
+          />
+        </div>
+
+        {pasarelaAbierta && (
+          <PasarelaPago
+            totalArticulos={totalArticulos}
+            onConfirmar={confirmarPago}
+            onCancelar={() => setPasarelaAbierta(false)}
+          />
+        )}
+
+        {recibo && (
+          <TicketModal
+            venta={recibo.venta}
+            lineas={recibo.lineas}
+            vendedorNombre={usuario?.nombre ?? ''}
+            onListo={() => setRecibo(null)}
+          />
+        )}
+
+        {reciboApartado && (
+          <ReciboApartado
+            apartado={reciboApartado}
+            vendedorNombre={usuario?.nombre ?? ''}
+            onListo={() => setReciboApartado(null)}
+          />
+        )}
       </div>
-      <div className={`${styles.ticketWrap} ${panelMovil === 'catalogo' ? styles.oculto : ''}`}>
-        <TicketPanel
-          carrito={carrito}
-          modo={modo}
-          onModoChange={setModo}
-          apartado={datosApartado}
-          onApartadoChange={(cambios) => setDatosApartado((actual) => ({ ...actual, ...cambios }))}
-          onCobrar={cobrar}
-          onApartar={apartar}
-          onCancelar={cancelarTicket}
-        />
-      </div>
-
-      {pasarelaAbierta && (
-        <PasarelaPago
-          totalArticulos={totalArticulos}
-          onConfirmar={confirmarPago}
-          onCancelar={() => setPasarelaAbierta(false)}
-        />
-      )}
-
-      {recibo && (
-        <TicketModal
-          venta={recibo.venta}
-          lineas={recibo.lineas}
-          vendedorNombre={usuario?.nombre ?? ''}
-          onListo={() => setRecibo(null)}
-        />
-      )}
-
-      {reciboApartado && (
-        <ReciboApartado
-          apartado={reciboApartado}
-          vendedorNombre={usuario?.nombre ?? ''}
-          onListo={() => setReciboApartado(null)}
-        />
-      )}
     </div>
   );
 }

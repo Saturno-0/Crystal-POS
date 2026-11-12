@@ -36,6 +36,7 @@ export function App() {
   const { usuario } = useAuth();
   const [vista, setVista] = useState<Vista>('pos');
   const [productoEditando, setProductoEditando] = useState<Producto | null>(null);
+  const [productoParaVender, setProductoParaVender] = useState<Producto | null>(null);
 
   const esAdmin = usuario?.rol === 'admin';
   const navItems = useMemo(() => navPorRol(esAdmin), [esAdmin]);
@@ -58,6 +59,11 @@ export function App() {
     setVista('ana');
   }
 
+  function venderAhora(producto: Producto) {
+    setProductoParaVender(producto);
+    setVista('pos');
+  }
+
   function navegar(key: string) {
     if (key !== 'inv') setProductoEditando(null);
     setVista(key as Vista);
@@ -71,9 +77,19 @@ export function App() {
       userInitials={usuario.ini}
       onAvatarClick={() => setVista('cambio')}
     >
-      {vistaSegura === 'pos' && <Venta />}
+      {vistaSegura === 'pos' && (
+        <Venta
+          productoParaVender={productoParaVender}
+          onProductoAgregado={() => setProductoParaVender(null)}
+          onCambiarUsuario={() => setVista('cambio')}
+        />
+      )}
       {vistaSegura === 'inv' && (
-        <Alta productoEnEdicion={productoEditando} onTerminarEdicion={terminarEdicion} />
+        <Alta
+          productoEnEdicion={productoEditando}
+          onTerminarEdicion={terminarEdicion}
+          onVenderAhora={venderAhora}
+        />
       )}
       {vistaSegura === 'apa' && <Apartados />}
       {vistaSegura === 'cmb' && <Cambios />}

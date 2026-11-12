@@ -37,6 +37,6 @@ export async function crearProducto(page: Page, p: ProductoUI) {
   await page.getByPlaceholder('$0.00').fill(String(p.precio));
   await page.getByRole('button', { name: p.categoria, exact: true }).click();
   if (p.talla) await page.getByRole('button', { name: p.talla, exact: true }).click();
-  await page.getByRole('button', { name: /^Dar de alta/ }).click();
+  await page.getByRole('button', { name: /^Dar de alta \d+ (pieza|unidades)$/ }).click();
   await expect(page.getByText(/dada[s]? de alta · SKU/)).toBeVisible();
 }

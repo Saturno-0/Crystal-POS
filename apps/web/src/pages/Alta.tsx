@@ -26,9 +26,12 @@ function prefijoSku(texto: string, largo: number): string {
 export function Alta({
   productoEnEdicion,
   onTerminarEdicion,
+  onVenderAhora,
 }: {
   productoEnEdicion?: Producto | null;
   onTerminarEdicion?: () => void;
+  /** Pieza única recién dada de alta → al ticket de Venta para cobrarla ya. */
+  onVenderAhora?: (producto: Producto) => void;
 } = {}) {
   const { mostrar } = useToast();
   const { usuario } = useAuth();
@@ -134,7 +137,7 @@ export function Alta({
     }
   }
 
-  async function enviar() {
+  async function enviar(venderDespues = false) {
     if (enviando) return;
     if (!nombre.trim()) return mostrar('Captura el nombre del producto');
     const precioNumero = Number(precio);
@@ -178,12 +181,16 @@ export function Alta({
         descuentoTipo: descuentoVestido?.tipo,
         descuentoValor: descuentoVestido?.valor,
       });
+      const unidades = modo === 'lote' ? cantidad : 1;
       mostrar(
-        modo === 'lote'
-          ? `${cantidad} unidades dadas de alta · SKU ${creado.sku}`
-          : `Pieza única dada de alta · SKU ${creado.sku}`,
+        creado.reabastecido
+          ? `Ya existía: +${unidades} al stock de ${creado.nombre} · ahora ${creado.stock} u · SKU ${creado.sku}`
+          : modo === 'lote'
+            ? `${cantidad} unidades dadas de alta · SKU ${creado.sku}`
+            : `Pieza única dada de alta · SKU ${creado.sku}`,
       );
       limpiar();
+      if (venderDespues) onVenderAhora?.(creado);
     } catch (err) {
       mostrar(err instanceof ApiError ? err.message : 'No se pudo guardar el producto');
     } finally {
@@ -219,11 +226,13 @@ export function Alta({
         descuentoTipo: descuentoVestido?.tipo,
         descuentoValor: descuentoVestido?.valor,
       });
-      const totalPiezas = creados.reduce((acc, p) => acc + p.stock, 0);
+      const totalPiezas = creados.reduce((acc, p) => acc + p.stock - p.stockAnterior, 0);
+      const sumadas = creados.filter((p) => p.reabastecido).length;
       mostrar(
-        'porColor' in distribucion
+        ('porColor' in distribucion
           ? `${totalPiezas} piezas dadas de alta en ${creados.length} combinaciones de color y talla`
-          : `${totalPiezas} piezas dadas de alta en ${creados.length} tallas`,
+          : `${totalPiezas} piezas dadas de alta en ${creados.length} tallas`) +
+          (sumadas > 0 ? ` · ${sumadas} ya existían y se sumaron a su stock` : ''),
       );
       setModalTallasAbierto(false);
       limpiar();
@@ -433,9 +442,19 @@ export function Alta({
             </div>
           ))}
 
-        <button type="button" className={styles.btnSubmit} disabled={enviando} onClick={enviar}>
+        <button type="button" className={styles.btnSubmit} disabled={enviando} onClick={() => enviar()}>
           {editando ? 'Guardar cambios' : modo === 'lote' ? `Dar de alta ${cantidad} unidades` : 'Dar de alta 1 pieza'}
         </button>
+        {!editando && modo === 'unica' && onVenderAhora && (
+          <button
+            type="button"
+            className={styles.btnVenderAhora}
+            disabled={enviando}
+            onClick={() => enviar(true)}
+          >
+            Dar de alta y vender ahora
+          </button>
+        )}
         <button
           type="button"
           className={styles.btnLimpiar}

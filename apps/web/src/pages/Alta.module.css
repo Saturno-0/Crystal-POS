@@ -245,3 +245,20 @@
   cursor: pointer;
   flex: none;
 }
+
+.btnVenderAhora {
+  min-height: 52px;
+  border: 1.5px solid var(--primary);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ptext);
+  font: 600 15px/1 var(--font-ui);
+  cursor: pointer;
+  flex: none;
+}
+
+.btnVenderAhora:disabled {
+  border-color: var(--border2);
+  color: var(--faint);
+  cursor: not-allowed;
+}

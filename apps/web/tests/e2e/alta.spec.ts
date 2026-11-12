@@ -20,6 +20,40 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await expect(page.getByText('talla M')).toBeVisible();
   });
 
+  test('"Dar de alta y vender ahora" lleva la pieza directo al ticket de Venta', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Alta');
+    await page.getByPlaceholder('Ej. Jean recto tiro alto').fill('Blusa vender ya');
+    await page.getByPlaceholder('Marca').fill('TestMarca');
+    await page.getByPlaceholder('$0.00').fill('380');
+    await page.getByRole('button', { name: 'Blusas', exact: true }).click();
+    await page.getByRole('button', { name: 'S', exact: true }).click();
+    await page.getByRole('button', { name: 'Dar de alta y vender ahora' }).click();
+
+    await expect(page.getByText('Vendiendo como')).toBeVisible();
+    await expect(page.getByText('Blusa vender ya agregado al ticket')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Cobrar/ })).toBeEnabled();
+  });
+
+  test('dar de alta una prenda que ya existe suma a su stock en vez de duplicarla', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    for (let i = 0; i < 2; i++) {
+      await irA(page, 'Alta');
+      await page.getByPlaceholder('Ej. Jean recto tiro alto').fill('Blusa repetida');
+      await page.getByPlaceholder('Marca').fill('TestMarca');
+      await page.getByPlaceholder('$0.00').fill('300');
+      await page.getByRole('button', { name: 'Blusas', exact: true }).click();
+      await page.getByRole('button', { name: 'L', exact: true }).click();
+      await page.getByRole('button', { name: 'Dar de alta 1 pieza' }).click();
+    }
+    await expect(page.getByText(/Ya existía: \+1 al stock de Blusa repetida · ahora 2 u/)).toBeVisible();
+
+    await irA(page, 'Venta');
+    await page.getByPlaceholder('Buscar nombre, marca o SKU…').fill('Blusa repetida');
+    await expect(page.getByText('Blusa repetida', { exact: true })).toHaveCount(1);
+    await expect(page.getByText('2 u', { exact: true })).toBeVisible();
+  });
+
   test('alta por lote con preset +10 y tallas numéricas de pantalón', async ({ page }) => {
     await login(page, 'Crystal Domínguez');
     await irA(page, 'Alta');
