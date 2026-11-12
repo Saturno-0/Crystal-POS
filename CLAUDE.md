@@ -120,6 +120,17 @@ No hay lint configurado en `apps/api` ni `packages/shared`.
     y solo si es de 1 unidad. Sin límite de tiempo por ahora. Implementado en
     `apps/api/src/services/cambios.service.ts`.
 
+## Inventario: agotados y altas repetidas
+
+- Los productos con `stock = 0` no se listan (`productos.service.ts#listar`): desaparecen
+  de Venta y de Inventario, pero **no se borran** (ventas/apartados/cambios los
+  referencian) y reaparecen solos si la unidad regresa.
+- Dar de alta una prenda con el mismo nombre, marca, categoría, talla y color
+  (sin distinguir mayúsculas/acentos/espacios) **suma al stock** del producto existente
+  —incluso si estaba agotado o eliminado, que se reactiva— en vez de crear otro SKU; el
+  precio y descuento quedan con lo capturado en esa alta (`darDeAlta`, auditado como
+  `producto.reabastecer`).
+
 ## Impresión de ticket (HU-3.6)
 
 Impresora confirmada: térmica genérica **POS-58** (58 mm, USB, ESC/POS), vía el driver de

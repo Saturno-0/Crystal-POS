@@ -41,8 +41,14 @@ export interface CrearProductoInput {
   descuentoValor?: number;
 }
 
+/** Producto resultante de un alta: `reabastecido` = ya existía y se sumó a su stock. */
+export interface ProductoDadoDeAlta extends Producto {
+  reabastecido: boolean;
+  stockAnterior: number;
+}
+
 export function crearProducto(input: CrearProductoInput) {
-  return apiFetch<Producto>('/api/productos', {
+  return apiFetch<ProductoDadoDeAlta>('/api/productos', {
     method: 'POST',
     body: JSON.stringify(input),
   });
@@ -65,7 +71,7 @@ export interface CrearLotePorTallasInput {
 }
 
 export function crearLotePorTallas(input: CrearLotePorTallasInput) {
-  return apiFetch<Producto[]>('/api/productos/lote-tallas', {
+  return apiFetch<ProductoDadoDeAlta[]>('/api/productos/lote-tallas', {
     method: 'POST',
     body: JSON.stringify(input),
   });

@@ -238,6 +238,76 @@ describe('listar (HU-2.6)', () => {
     );
     expect(productos.listar(db, { categoriaId: mezclillaId })).toHaveLength(1);
   });
+
+  it('no lista productos agotados (stock 0)', () => {
+    const p = productos.crear(
+      db,
+      { nombre: 'Jean recto', marca: 'Levis', categoriaId: mezclillaId, talla: '7', precio: 590 },
+      ACTOR_ID,
+    );
+    db.prepare('UPDATE productos SET stock = 0 WHERE id = ?').run(p.id);
+    expect(productos.listar(db, {})).toHaveLength(0);
+  });
+});
+
+describe('alta de una prenda que ya existe', () => {
+  const jean = { nombre: 'Jean recto', marca: 'Levis', talla: '7', precio: 590 };
+
+  it('suma al stock del producto existente en vez de crear otro SKU', () => {
+    const original = productos.crear(db, { ...jean, categoriaId: mezclillaId, cantidad: 5 }, ACTOR_ID);
+    const otra = productos.crear(
+      db,
+      { ...jean, nombre: '  jean  RECTO ', marca: 'levis', categoriaId: mezclillaId, cantidad: 3 },
+      ACTOR_ID,
+    );
+    expect(otra.id).toBe(original.id);
+    expect(otra.sku).toBe(original.sku);
+    expect(otra.stock).toBe(8);
+    expect(otra.reabastecido).toBe(true);
+    expect(productos.listar(db, {})).toHaveLength(1);
+  });
+
+  it('no une si cambia la talla, la categoría o el color', () => {
+    productos.crear(db, { ...jean, categoriaId: mezclillaId }, ACTOR_ID);
+    const otraTalla = productos.crear(db, { ...jean, talla: '9', categoriaId: mezclillaId }, ACTOR_ID);
+    expect(otraTalla.reabastecido).toBe(false);
+
+    const sacosId = Number(
+      db.prepare("INSERT INTO categorias (nombre, tipo_talla, por_color) VALUES ('Sacos','estandar_ropa',1)").run()
+        .lastInsertRowid,
+    );
+    const saco = { nombre: 'Saco slim', marca: 'Zara', categoriaId: sacosId, talla: 'M', precio: 900 };
+    productos.crear(db, { ...saco, color: 'Negro' }, ACTOR_ID);
+    expect(productos.crear(db, { ...saco, color: 'Azul' }, ACTOR_ID).reabastecido).toBe(false);
+    expect(productos.crear(db, { ...saco, color: 'negro' }, ACTOR_ID).reabastecido).toBe(true);
+  });
+
+  it('reusa un producto agotado o eliminado y lo vuelve a mostrar', () => {
+    const original = productos.crear(db, { ...jean, categoriaId: mezclillaId }, ACTOR_ID);
+    db.prepare('UPDATE productos SET stock = 0 WHERE id = ?').run(original.id);
+    const regreso = productos.crear(db, { ...jean, categoriaId: mezclillaId, cantidad: 4 }, ACTOR_ID);
+    expect(regreso.id).toBe(original.id);
+    expect(regreso.stock).toBe(4);
+
+    productos.eliminar(db, original.id, ACTOR_ID);
+    const reactivado = productos.crear(db, { ...jean, categoriaId: mezclillaId, precio: 650 }, ACTOR_ID);
+    expect(reactivado.id).toBe(original.id);
+    expect(reactivado.activo).toBe(true);
+    expect(reactivado.precio).toBe(650);
+    expect(reactivado.stock).toBe(5);
+  });
+
+  it('el alta por tallas suma a las tallas que ya existían y crea las nuevas', () => {
+    productos.crear(db, { ...jean, categoriaId: mezclillaId, cantidad: 2 }, ACTOR_ID);
+    const lote = productos.crearLotePorTallas(
+      db,
+      { nombre: 'Jean recto', marca: 'Levis', categoriaId: mezclillaId, precio: 590, cantidades: { '7': 3, '9': 1 } },
+      ACTOR_ID,
+    );
+    expect(lote.find((p) => p.talla === '7')).toMatchObject({ stock: 5, reabastecido: true });
+    expect(lote.find((p) => p.talla === '9')).toMatchObject({ stock: 1, reabastecido: false });
+    expect(productos.listar(db, {})).toHaveLength(2);
+  });
 });
 
 describe('eliminar (HU-2.5)', () => {

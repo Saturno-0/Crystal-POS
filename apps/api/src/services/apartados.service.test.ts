@@ -148,7 +148,10 @@ describe('liquidar (HU-4.3)', () => {
     expect(resultado.remanente).toBe(700);
     expect(resultado.comisionMonto).toBeCloseTo(1000 * 0.06);
 
-    const actualizado = productos.listar(db, {})[0];
+    // Agotado: ya no aparece en listar, se lee directo de la BD.
+    const actualizado = db.prepare('SELECT vendidos FROM productos WHERE id = ?').get(p.id) as {
+      vendidos: number;
+    };
     expect(actualizado.vendidos).toBe(1); // ahora sí cuenta como vendido
     expect(apartados.listarActivos(db)).toHaveLength(0);
   });

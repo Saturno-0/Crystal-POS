@@ -47,6 +47,7 @@ export interface Producto {
   descuentoTipo: TipoDescuento | null;
   descuentoValor: number | null;
   activo: boolean;
+  createdAt: string;
 }
 
 export interface LineaCarrito {

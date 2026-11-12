@@ -31,6 +31,7 @@ interface ProductoRow {
   descuento_tipo: TipoDescuento | null;
   descuento_valor: number | null;
   activo: number;
+  created_at: string;
 }
 
 function aPublico(row: ProductoRow) {
@@ -48,6 +49,7 @@ function aPublico(row: ProductoRow) {
     descuentoTipo: row.descuento_tipo,
     descuentoValor: row.descuento_valor,
     activo: row.activo === 1,
+    createdAt: row.created_at,
   };
 }
 
@@ -117,13 +119,141 @@ function normalizarDescuentoVestido(
   return { descuentoTipo: tipo, descuentoValor: valor };
 }
 
+// Para reconocer una prenda que ya existe al darla de alta otra vez: sin
+// importar mayúsculas, acentos ni espacios de más ("Pantalón  Slim" = "pantalon slim").
+function claveTexto(texto: string | null): string {
+  return (texto ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase('es-MX')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+// Mismo nombre, marca, categoría, talla y color = la misma prenda. Incluye
+// productos agotados o eliminados (activo = 0): al volver a llegar se reusan
+// en vez de crear un duplicado. Prefiere uno activo, y el más reciente.
+function buscarExistente(
+  db: Database.Database,
+  datos: { nombre: string; marca: string; categoriaId: number; talla: string | null; color: string | null },
+): ProductoRow | undefined {
+  const candidatos = db
+    .prepare(
+      `SELECT * FROM productos WHERE categoria_id = ? AND talla IS ?
+       ORDER BY activo DESC, id DESC`,
+    )
+    .all(datos.categoriaId, datos.talla) as ProductoRow[];
+  return candidatos.find(
+    (p) =>
+      claveTexto(p.nombre) === claveTexto(datos.nombre) &&
+      claveTexto(p.marca) === claveTexto(datos.marca) &&
+      claveTexto(p.color) === claveTexto(datos.color),
+  );
+}
+
+interface AltaUnidad {
+  nombre: string;
+  marca: string;
+  categoria: CategoriaRow;
+  talla: string | null;
+  color: string | null;
+  precio: number;
+  cantidad: number;
+  descuento: { descuentoTipo: TipoDescuento | null; descuentoValor: number | null };
+}
+
+/**
+ * Da de alta `cantidad` unidades: si la prenda ya existe (ver buscarExistente)
+ * suma al stock de ese producto —y lo reactiva si estaba eliminado— en lugar
+ * de crear otro SKU. El precio y descuento quedan con lo capturado en esta alta.
+ */
+function darDeAlta(db: Database.Database, alta: AltaUnidad, actorId: number) {
+  const existente = buscarExistente(db, {
+    nombre: alta.nombre,
+    marca: alta.marca,
+    categoriaId: alta.categoria.id,
+    talla: alta.talla,
+    color: alta.color,
+  });
+
+  if (existente) {
+    db.prepare(
+      `UPDATE productos SET stock = stock + @cantidad, precio = @precio,
+         descuento_tipo = @descuentoTipo, descuento_valor = @descuentoValor,
+         activo = 1, updated_at = datetime('now')
+       WHERE id = @id`,
+    ).run({ id: existente.id, cantidad: alta.cantidad, precio: alta.precio, ...alta.descuento });
+    registrarAuditoria(db, {
+      usuarioId: actorId,
+      accion: 'producto.reabastecer',
+      entidad: 'producto',
+      entidadId: existente.id,
+      detalle: {
+        sku: existente.sku,
+        cantidad: alta.cantidad,
+        stockAnterior: existente.stock,
+        ...(existente.precio !== alta.precio
+          ? { precioAnterior: existente.precio, precioNuevo: alta.precio }
+          : {}),
+        ...(existente.activo === 0 ? { reactivado: true } : {}),
+      },
+    });
+    return {
+      ...aPublico(db.prepare('SELECT * FROM productos WHERE id = ?').get(existente.id) as ProductoRow),
+      reabastecido: true,
+      stockAnterior: existente.activo === 1 ? existente.stock : 0,
+    };
+  }
+
+  const sku = generarSku(db, alta.marca, alta.categoria.nombre);
+  const result = db
+    .prepare(
+      `INSERT INTO productos (sku, nombre, marca, categoria_id, talla, color, precio, stock, descuento_tipo, descuento_valor)
+       VALUES (@sku, @nombre, @marca, @categoriaId, @talla, @color, @precio, @stock, @descuentoTipo, @descuentoValor)`,
+    )
+    .run({
+      sku,
+      nombre: alta.nombre,
+      marca: alta.marca,
+      categoriaId: alta.categoria.id,
+      talla: alta.talla,
+      color: alta.color,
+      precio: alta.precio,
+      stock: alta.cantidad,
+      ...alta.descuento,
+    });
+
+  registrarAuditoria(db, {
+    usuarioId: actorId,
+    accion: 'producto.crear',
+    entidad: 'producto',
+    entidadId: Number(result.lastInsertRowid),
+    detalle: {
+      sku,
+      nombre: alta.nombre,
+      talla: alta.talla,
+      cantidad: alta.cantidad,
+      ...(alta.color ? { color: alta.color } : {}),
+    },
+  });
+
+  return {
+    ...aPublico(db.prepare('SELECT * FROM productos WHERE id = ?').get(result.lastInsertRowid) as ProductoRow),
+    reabastecido: false,
+    stockAnterior: 0,
+  };
+}
+
 export interface FiltrosProducto {
   busqueda?: string;
   categoriaId?: number;
 }
 
 export function listar(db: Database.Database, filtros: FiltrosProducto = {}) {
-  const condiciones = ['activo = 1'];
+  // Agotados (stock 0) no se listan: ni en Venta ni en Inventario. Siguen en
+  // la BD (las ventas los referencian) y reaparecen solos si la unidad
+  // regresa (cancelación, penalización) o si se vuelven a dar de alta.
+  const condiciones = ['activo = 1', 'stock > 0'];
   const params: Record<string, unknown> = {};
   if (filtros.categoriaId) {
     condiciones.push('categoria_id = @categoriaId');
@@ -170,37 +300,10 @@ export function crear(db: Database.Database, input: CrearProductoInput, actorId:
   const talla = normalizarTalla(categoria, input.talla);
   const color = normalizarColorProducto(categoria, input.color);
   const descuento = normalizarDescuentoVestido(categoria, input.descuentoTipo, input.descuentoValor);
-  const sku = generarSku(db, marca, categoria.nombre);
 
-  const result = db
-    .prepare(
-      `INSERT INTO productos (sku, nombre, marca, categoria_id, talla, color, precio, stock, descuento_tipo, descuento_valor)
-       VALUES (@sku, @nombre, @marca, @categoriaId, @talla, @color, @precio, @stock, @descuentoTipo, @descuentoValor)`,
-    )
-    .run({
-      sku,
-      nombre,
-      marca,
-      categoriaId: categoria.id,
-      talla,
-      color,
-      precio: input.precio,
-      stock: cantidad,
-      descuentoTipo: descuento.descuentoTipo,
-      descuentoValor: descuento.descuentoValor,
-    });
-
-  registrarAuditoria(db, {
-    usuarioId: actorId,
-    accion: 'producto.crear',
-    entidad: 'producto',
-    entidadId: Number(result.lastInsertRowid),
-    detalle: { sku, nombre, cantidad, ...(color ? { color } : {}) },
-  });
-
-  return aPublico(
-    db.prepare('SELECT * FROM productos WHERE id = ?').get(result.lastInsertRowid) as ProductoRow,
-  );
+  return db.transaction(() =>
+    darDeAlta(db, { nombre, marca, categoria, talla, color, precio: input.precio, cantidad, descuento }, actorId),
+  )();
 }
 
 export interface CrearLotePorTallasInput {
@@ -272,38 +375,13 @@ export function crearLotePorTallas(
   }
 
   const ejecutar = db.transaction(() =>
-    entradas.map(({ talla, color, cantidad }) => {
-      const sku = generarSku(db, marca, categoria.nombre);
-      const result = db
-        .prepare(
-          `INSERT INTO productos (sku, nombre, marca, categoria_id, talla, color, precio, stock, descuento_tipo, descuento_valor)
-           VALUES (@sku, @nombre, @marca, @categoriaId, @talla, @color, @precio, @stock, @descuentoTipo, @descuentoValor)`,
-        )
-        .run({
-          sku,
-          nombre,
-          marca,
-          categoriaId: categoria.id,
-          talla,
-          color,
-          precio: input.precio,
-          stock: cantidad,
-          descuentoTipo: descuento.descuentoTipo,
-          descuentoValor: descuento.descuentoValor,
-        });
-
-      registrarAuditoria(db, {
-        usuarioId: actorId,
-        accion: 'producto.crear',
-        entidad: 'producto',
-        entidadId: Number(result.lastInsertRowid),
-        detalle: { sku, nombre, talla, cantidad, ...(color ? { color } : {}) },
-      });
-
-      return aPublico(
-        db.prepare('SELECT * FROM productos WHERE id = ?').get(result.lastInsertRowid) as ProductoRow,
-      );
-    }),
+    entradas.map(({ talla, color, cantidad }) =>
+      darDeAlta(
+        db,
+        { nombre, marca, categoria, talla, color, precio: input.precio, cantidad, descuento },
+        actorId,
+      ),
+    ),
   );
 
   return ejecutar();
