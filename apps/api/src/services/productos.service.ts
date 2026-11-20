@@ -121,7 +121,7 @@ function normalizarDescuentoVestido(
 
 // Para reconocer una prenda que ya existe al darla de alta otra vez: sin
 // importar mayúsculas, acentos ni espacios de más ("Pantalón  Slim" = "pantalon slim").
-function claveTexto(texto: string | null): string {
+export function claveTexto(texto: string | null): string {
   return (texto ?? '')
     .trim()
     .replace(/\s+/g, ' ')

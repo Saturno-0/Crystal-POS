@@ -99,3 +99,29 @@ export function editarProducto(id: number, input: EditarProductoInput) {
 export function eliminarProducto(id: number) {
   return apiFetch<void>(`/api/productos/${id}`, { method: 'DELETE' });
 }
+
+export interface FilaImportada {
+  fila: number;
+  nombre: string;
+  marca: string;
+  categoria: string;
+  talla: string;
+  color: string;
+  cantidad: number | null;
+  estado: 'nueva' | 'suma' | 'error';
+  error?: string;
+}
+
+export interface ResultadoImportacion {
+  aplicado: boolean;
+  resumen: { total: number; nuevas: number; sumas: number; errores: number };
+  filas: FilaImportada[];
+}
+
+/** `aplicar: false` solo valida y devuelve la vista previa; no guarda nada. */
+export function importarCsv(csv: string, aplicar: boolean) {
+  return apiFetch<ResultadoImportacion>('/api/productos/importar', {
+    method: 'POST',
+    body: JSON.stringify({ csv, aplicar }),
+  });
+}

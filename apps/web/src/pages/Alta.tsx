@@ -6,6 +6,7 @@ import * as productosApi from '../features/productos/api';
 import { ApiError } from '../lib/apiClient';
 import styles from './Alta.module.css';
 import { GestionCategorias } from './GestionCategorias';
+import { ModalImportarCsv } from './ModalImportarCsv';
 import { ModalLotePorTallas } from './ModalLotePorTallas';
 import { SelectorColor } from './SelectorColor';
 
@@ -51,6 +52,7 @@ export function Alta({
   const [stockEditado, setStockEditado] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [modalTallasAbierto, setModalTallasAbierto] = useState(false);
+  const [modalCsvAbierto, setModalCsvAbierto] = useState(false);
 
   const cargarCategorias = useCallback(
     (mantenerSeleccion: boolean) => {
@@ -270,6 +272,12 @@ export function Alta({
           </div>
         )}
 
+        {!editando && (
+          <button type="button" className={styles.btnLotePorTallas} onClick={() => setModalCsvAbierto(true)}>
+            Importar varias prendas desde CSV
+          </button>
+        )}
+
         <div className={styles.campo}>
           <label className={styles.label}>Nombre del producto</label>
           <input
@@ -463,6 +471,8 @@ export function Alta({
           {editando ? 'Cancelar edición' : 'Limpiar formulario'}
         </button>
       </div>
+
+      {modalCsvAbierto && <ModalImportarCsv onCerrar={() => setModalCsvAbierto(false)} />}
 
       {modalTallasAbierto && opcionesTalla && (
         <ModalLotePorTallas

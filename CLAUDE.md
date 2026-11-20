@@ -131,6 +131,14 @@ No hay lint configurado en `apps/api` ni `packages/shared`.
   precio y descuento quedan con lo capturado en esa alta (`darDeAlta`, auditado como
   `producto.reabastecer`).
 
+## Importación masiva por CSV
+
+Botón "Importar varias prendas desde CSV" en Alta → `POST /api/productos/importar`
+(`{ csv, aplicar }`, `services/importacion.service.ts`). Reutiliza `crear` fila por fila
+(mismas validaciones y la regla de "alta repetida suma stock") dentro de **una sola
+transacción: todo o nada** — con `aplicar: false` (vista previa) o si una fila falla, se
+revierte completa. Máx. 1000 filas; acepta `,` o `;` y BOM de Excel.
+
 ## Impresión de ticket (HU-3.6)
 
 Impresora confirmada: térmica genérica **POS-58** (58 mm, USB, ESC/POS), vía el driver de

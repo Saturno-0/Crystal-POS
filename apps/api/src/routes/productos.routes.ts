@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { db } from '../db/client.js';
-import { handleError } from '../lib/errors.js';
+import { ValidationError, handleError } from '../lib/errors.js';
 import { authenticate, requireRole } from '../middleware/auth.js';
+import * as importacionService from '../services/importacion.service.js';
 import * as productosService from '../services/productos.service.js';
 
 const router = Router();
@@ -32,6 +33,17 @@ router.post('/lote-tallas', authenticate, (req, res) => {
   try {
     const creados = productosService.crearLotePorTallas(db, req.body ?? {}, req.sesion!.sub);
     res.status(201).json(creados);
+  } catch (err) {
+    handleError(res, err);
+  }
+});
+
+// Importación masiva desde CSV: `aplicar: false` = solo vista previa (no guarda nada).
+router.post('/importar', authenticate, (req, res) => {
+  try {
+    const { csv, aplicar } = req.body ?? {};
+    if (typeof csv !== 'string') throw new ValidationError('Falta el contenido del archivo CSV');
+    res.json(importacionService.importarCsv(db, csv, aplicar === true, req.sesion!.sub));
   } catch (err) {
     handleError(res, err);
   }
