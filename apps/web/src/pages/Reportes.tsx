@@ -287,6 +287,38 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
           </>
         )}
       </div>
+      
+      <div className={styles.panel}>
+        <div className={styles.tituloPanelFila}>
+          <h2 className={styles.tituloPanel}>Inventario · {productos.length}</h2>
+          <SelectorOrden valor={orden} onChange={setOrden} />
+        </div>
+        <div className={styles.tablaInventario}>
+          {productosOrdenados.map((p) => (
+            <div key={p.id} className={styles.filaProducto}>
+              <span>
+                <div>{p.nombre}</div>
+                <div className={styles.productoMeta}>
+                  {p.marca} · {p.sku} · talla {p.talla ?? 'Única'}
+                  {p.color ? ` · ${p.color}` : ''}
+                </div>
+              </span>
+              <span>{formatoMXN.format(p.precio)}</span>
+              <span>{p.stock} stock</span>
+              <span>{p.vendidos} vendidos</span>
+              <span className={styles.accionesProducto}>
+                <button type="button" className={styles.btnAccion} onClick={() => onEditarProducto(p)}>
+                  Editar
+                </button>
+                <button type="button" className={styles.btnPeligro} onClick={() => eliminarProducto(p)}>
+                  Eliminar
+                </button>
+              </span>
+            </div>
+          ))}
+          {productos.length === 0 && <div className={styles.vacio}>Sin productos con existencia.</div>}
+        </div>
+      </div>
 
       <div className={styles.panel}>
         <div className={styles.tituloPanelFila}>
@@ -319,38 +351,7 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
           </pre>
         )}
       </div>
-
-      <div className={styles.panel}>
-        <div className={styles.tituloPanelFila}>
-          <h2 className={styles.tituloPanel}>Inventario · {productos.length}</h2>
-          <SelectorOrden valor={orden} onChange={setOrden} />
-        </div>
-        <div className={styles.tablaInventario}>
-          {productosOrdenados.map((p) => (
-            <div key={p.id} className={styles.filaProducto}>
-              <span>
-                <div>{p.nombre}</div>
-                <div className={styles.productoMeta}>
-                  {p.marca} · {p.sku} · talla {p.talla ?? 'Única'}
-                  {p.color ? ` · ${p.color}` : ''}
-                </div>
-              </span>
-              <span>{formatoMXN.format(p.precio)}</span>
-              <span>{p.stock} stock</span>
-              <span>{p.vendidos} vendidos</span>
-              <span className={styles.accionesProducto}>
-                <button type="button" className={styles.btnAccion} onClick={() => onEditarProducto(p)}>
-                  Editar
-                </button>
-                <button type="button" className={styles.btnPeligro} onClick={() => eliminarProducto(p)}>
-                  Eliminar
-                </button>
-              </span>
-            </div>
-          ))}
-          {productos.length === 0 && <div className={styles.vacio}>Sin productos con existencia.</div>}
-        </div>
-      </div>
+      
     </div>
   );
 }
