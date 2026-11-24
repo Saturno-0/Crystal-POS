@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { irA, login } from './helpers';
+import { crearProducto, irA, login } from './helpers';
 
 test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
   test('pieza única con talla estándar aparece luego en el catálogo de Venta', async ({ page }) => {
@@ -294,5 +294,18 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await expect(
       page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }),
     ).not.toBeVisible();
+  });
+
+  test('recuerda la última categoría elegida al dar de alta y al volver a la sección', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await crearProducto(page, { nombre: 'Categoria recordada', marca: 'TestMarca', precio: 300, categoria: 'Mezclilla', talla: '5' });
+    const mezclilla = page.getByRole('button', { name: 'Mezclilla', exact: true });
+    await expect(page.getByPlaceholder('Ej. Jean recto tiro alto')).toHaveValue('');
+    await expect(mezclilla).toHaveClass(/chipCategoriaActiva/);
+
+    await irA(page, 'Venta');
+    await irA(page, 'Alta');
+    await expect(mezclilla).toHaveClass(/chipCategoriaActiva/);
+    await expect(page.getByRole('button', { name: '1', exact: true })).toHaveClass(/chipTallaActiva/);
   });
 });

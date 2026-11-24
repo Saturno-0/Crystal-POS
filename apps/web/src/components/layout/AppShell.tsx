@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import styles from './AppShell.module.css';
 
 export interface NavItem {
@@ -29,6 +29,13 @@ export function AppShell({
   onAvatarClick,
   children,
 }: AppShellProps) {
+  // Todas las vistas comparten este contenedor con scroll: sin esto, abrir una
+  // sección desde media lista de otra la muestra ya recorrida hacia abajo.
+  const contentRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    contentRef.current?.scrollTo(0, 0);
+  }, [activeKey]);
+
   return (
     <div className={styles.shell}>
       <nav className={styles.rail} aria-label="Navegación principal">
@@ -56,7 +63,7 @@ export function AppShell({
       </nav>
 
       <div className={styles.main}>
-        <div className={styles.content}>{children}</div>
+        <div className={styles.content} ref={contentRef}>{children}</div>
 
         <nav className={styles.bottomBar} aria-label="Navegación principal">
           {navItems.map((item) => (

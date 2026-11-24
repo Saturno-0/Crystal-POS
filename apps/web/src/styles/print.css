@@ -28,6 +28,8 @@
        usa var(--border2)). */
     --text: #000;
     --muted: #000;
+    --oktext: #000;
+    --warntext: #000;
     --border2: #000;
     --surface: #fff;
     color: #000 !important;
@@ -47,6 +49,9 @@
     gap: 2.5mm !important;
     box-shadow: none !important;
     border-radius: 0 !important;
+    /* En pantalla la tarjeta hace scroll si no cabe; en papel va completa. */
+    max-height: none !important;
+    overflow: visible !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

@@ -12,6 +12,26 @@ import { SelectorColor } from './SelectorColor';
 
 const PRESETS_LOTE = [5, 10, 20];
 
+// Última categoría elegida en un alta, recordada en este navegador (solo comodidad).
+const LLAVE_CATEGORIA = 'crystal.alta.categoria';
+
+function categoriaRecordada(categorias: Categoria[]): Categoria | undefined {
+  try {
+    const id = Number(localStorage.getItem(LLAVE_CATEGORIA));
+    return categorias.find((c) => c.id === id);
+  } catch {
+    return undefined; // Sin almacenamiento disponible: se usa la primera.
+  }
+}
+
+function recordarCategoria(id: number) {
+  try {
+    localStorage.setItem(LLAVE_CATEGORIA, String(id));
+  } catch {
+    // Ignorado: la categoría solo no se recordará.
+  }
+}
+
 function tallaPorDefecto(categoria: Categoria | undefined): string {
   if (!categoria) return '';
   const opciones = TALLAS_POR_TIPO[categoria.tipoTalla];
@@ -63,9 +83,9 @@ export function Alta({
           setCategorias(lista);
           setCategoriaId((actualId) => {
             if (mantenerSeleccion && lista.some((c) => c.id === actualId)) return actualId;
-            const primera = lista[0];
-            setTalla(tallaPorDefecto(primera));
-            return primera?.id ?? null;
+            const inicial = categoriaRecordada(lista) ?? lista[0];
+            setTalla(tallaPorDefecto(inicial));
+            return inicial?.id ?? null;
           });
         })
         .catch((err) => mostrar(err instanceof ApiError ? err.message : 'No se pudieron cargar las categorías'));
@@ -122,6 +142,7 @@ export function Alta({
   function elegirCategoria(c: Categoria) {
     setCategoriaId(c.id);
     if (editando) return; // mismo tipo de talla por construcción: talla/descuento se quedan igual
+    recordarCategoria(c.id);
     setTalla(tallaPorDefecto(c));
     setDescuentoVestido(null);
     if (!c.porColor) setColor(null);
@@ -134,10 +155,9 @@ export function Alta({
     setCantidad(5);
     setDescuentoVestido(null);
     setColor(null);
-    if (categorias.length > 0) {
-      setCategoriaId(categorias[0].id);
-      setTalla(tallaPorDefecto(categorias[0]));
-    }
+    // La categoría se conserva: lo normal es dar de alta varias prendas seguidas
+    // de la misma.
+    setTalla(tallaPorDefecto(categoria));
   }
 
   async function enviar(venderDespues = false) {

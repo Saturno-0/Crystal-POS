@@ -78,6 +78,7 @@
 }
 
 .btnSecundario {
+  flex: none;
   height: 40px;
   border: 1px solid var(--border2);
   border-radius: 9px;
@@ -88,6 +89,7 @@
 }
 
 .btnPrimario {
+  flex: none;
   height: 48px;
   border: none;
   border-radius: 9px;
@@ -99,9 +101,9 @@
 
 /* Impresión térmica (POS-58, 48 mm imprimibles ≈ 181 px CSS). La térmica solo
    imprime negro puro: grises y fondos de color salen tenues o desaparecen
-   (por eso el folio, verde sobre verde claro, no se veía). Todo va en negro,
+   (los textos de color, como el folio, se imprimen tramados). Todo va en negro,
    sin fondos, con pesos ≥ 500 y tamaños ≥ 11 px para que se lea. Los colores
-   (--muted, --border2…) se fuerzan a negro en print.css. */
+   (--muted, --oktext, --border2…) se fuerzan a negro en print.css. */
 @media print {
   .negocioNombre {
     font-size: 20px;
@@ -121,8 +123,11 @@
     background: none;
     border: 1.5px solid #000;
     border-radius: 0;
-    padding: 4px 10px;
-    font-size: 16px;
+    padding: 5px 10px;
+    /* Instrument Sans, como los demás títulos: el trazo de la monoespaciada
+       es más delgado y en la térmica se ve tenue. */
+    font-family: var(--font-ui);
+    font-size: 20px;
     font-weight: 800;
   }
   .titulo {

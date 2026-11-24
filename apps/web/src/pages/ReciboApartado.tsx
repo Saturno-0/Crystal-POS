@@ -1,3 +1,4 @@
+import type { EstadoApartado } from '@crystal/shared';
 import { useEffect } from 'react';
 import type { ApartadoCreado } from '../features/apartados/api';
 import { DATOS_NEGOCIO, LEYENDA_APARTADOS, LEYENDA_PROBADA } from '../lib/datosNegocio';
@@ -13,18 +14,31 @@ const formatoFechaHora = new Intl.DateTimeFormat('es-MX', {
   minute: '2-digit',
 });
 
+const TITULO: Record<EstadoApartado, string> = {
+  activo: 'Apartado registrado',
+  liquidado: 'Apartado liquidado',
+  penalizado: 'Apartado penalizado',
+};
+
 export function ReciboApartado({
   apartado,
+  estado = 'activo',
   vendedorNombre,
+  fechaOriginal,
   onListo,
 }: {
-  apartado: ApartadoCreado;
+  apartado: Omit<ApartadoCreado, 'id'>;
+  estado?: EstadoApartado;
   vendedorNombre: string;
+  /** Presente = reimpresión de un recibo anterior, con la fecha en que se apartó. */
+  fechaOriginal?: Date;
   onListo: () => void;
 }) {
   // HU-3.6/4.1: "Apartar e imprimir recibo" implica imprimir al llegar aquí.
+  // Al reimprimir no: primero se revisa en pantalla si es el ticket correcto.
   useEffect(() => {
-    window.print();
+    if (!fechaOriginal) window.print();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -50,6 +64,8 @@ export function ReciboApartado({
           maxWidth: '100%',
           background: 'var(--surface)',
           borderRadius: 14,
+          maxHeight: '100%',
+          overflowY: 'auto',
           padding: 22,
           display: 'flex',
           flexDirection: 'column',
@@ -66,10 +82,13 @@ export function ReciboApartado({
         <div className={styles.separador} />
 
         <div className={styles.folio}>Folio #{apartado.folio}</div>
-        <div className={styles.titulo}>Apartado registrado</div>
+        <div className={styles.titulo}>{TITULO[estado]}</div>
         <div className={styles.fechaAtendio}>
-          {formatoFechaHora.format(new Date())} · Atendió: {vendedorNombre}
+          {formatoFechaHora.format(fechaOriginal ?? new Date())} · Atendió: {vendedorNombre}
         </div>
+        {fechaOriginal && (
+          <div className={styles.metaTexto}>Reimpresión: {formatoFechaHora.format(new Date())}</div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {apartado.lineas.map((linea, i) => (
@@ -86,15 +105,30 @@ export function ReciboApartado({
           <span className={styles.totalLabel}>Abono recibido</span>
           <span className={styles.totalValor}>{formatoMXN.format(apartado.abonoInicial)}</span>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span className={styles.totalLabel}>Resta por pagar</span>
-          <span className={styles.totalValor}>{formatoMXN.format(apartado.resta)}</span>
-        </div>
+        {estado === 'liquidado' && (
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span className={styles.totalLabel}>Total pagado</span>
+            <span className={styles.totalValor}>{formatoMXN.format(apartado.total)}</span>
+          </div>
+        )}
+        {estado === 'activo' && (
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <span className={styles.totalLabel}>Resta por pagar</span>
+            <span className={styles.totalValor}>{formatoMXN.format(apartado.resta)}</span>
+          </div>
+        )}
 
-        <div className={styles.vence}>
-          Vence el {formatoFecha.format(new Date(apartado.venceAt.replace(' ', 'T')))}. Si no se liquida,
-          la prenda regresa al stock y el abono se penaliza.
-        </div>
+        {estado === 'activo' && (
+          <div className={styles.vence}>
+            Vence el {formatoFecha.format(new Date(apartado.venceAt.replace(' ', 'T')))}. Si no se liquida,
+            la prenda regresa al stock y el abono se penaliza.
+          </div>
+        )}
+        {estado === 'penalizado' && (
+          <div className={styles.vence}>
+            No se liquidó a tiempo: la prenda regresó al stock y el abono se penalizó.
+          </div>
+        )}
 
         <div className={styles.separador} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -104,12 +138,20 @@ export function ReciboApartado({
           <div className={styles.leyenda}>{LEYENDA_APARTADOS}</div>
         </div>
 
-        <button type="button" className={styles.btnSecundario} onClick={() => window.print()}>
-          Imprimir de nuevo
+        <button
+          type="button"
+          className={fechaOriginal ? styles.btnPrimario : styles.btnSecundario}
+          onClick={() => window.print()}
+        >
+          {fechaOriginal ? 'Reimprimir' : 'Imprimir de nuevo'}
         </button>
 
-        <button type="button" className={styles.btnPrimario} onClick={onListo}>
-          Listo
+        <button
+          type="button"
+          className={fechaOriginal ? styles.btnSecundario : styles.btnPrimario}
+          onClick={onListo}
+        >
+          {fechaOriginal ? 'Cerrar' : 'Listo'}
         </button>
       </div>
     </div>

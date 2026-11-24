@@ -21,6 +21,7 @@
 }
 
 .vendedorTexto {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -42,6 +43,7 @@
   white-space: nowrap;
 }
 
+.btnReimprimir,
 .btnCambiarUsuario {
   flex: none;
   min-height: 44px;
@@ -105,13 +107,27 @@
     padding: 8px 12px;
   }
 
-  .vendedorNombre {
-    font-size: 19px;
+  .vendedorEtiqueta {
+    font-size: 10px;
+    letter-spacing: 0;
+    white-space: nowrap;
   }
 
+  /* Dos renglones: el nombre completo debe verse junto a los botones. */
+  .vendedorNombre {
+    font-size: 17px;
+    white-space: normal;
+  }
+
+  .vendedor {
+    gap: 8px;
+  }
+
+  .btnReimprimir,
   .btnCambiarUsuario {
     font-size: 12px;
-    max-width: 50%;
+    padding: 0 8px;
+    max-width: 32%;
   }
 
   .layout {

@@ -1,7 +1,6 @@
-import { nombreConColor } from '@crystal/shared';
 import type { MetodoPago } from '@crystal/shared';
 import { useEffect } from 'react';
-import type { LineaCarritoCalculada } from '../features/ventas/useCarrito';
+import type { LineaTicket } from '../features/tickets/api';
 import { DATOS_NEGOCIO, LEYENDA_APARTADOS, LEYENDA_PROBADA } from '../lib/datosNegocio';
 import styles from './Ticket.module.css';
 
@@ -26,24 +25,30 @@ export interface VentaParaTicket {
   metodoPago: MetodoPago;
   efectivoRecibido: number | null;
   cambio: number;
-  comisionMonto: number;
+  /** null = no se muestra (reimpresión de la venta de otra persona). */
+  comisionMonto: number | null;
 }
 
 export function TicketModal({
   venta,
   lineas,
   vendedorNombre,
+  fechaOriginal,
   onListo,
 }: {
   venta: VentaParaTicket;
-  lineas: LineaCarritoCalculada[];
+  lineas: LineaTicket[];
   vendedorNombre: string;
+  /** Presente = reimpresión de un ticket anterior, con la fecha en que se vendió. */
+  fechaOriginal?: Date;
   onListo: () => void;
 }) {
   // HU-3.6: imprime al abrir el modal, sin esperar una acción extra del
   // vendedor — "Confirmar e imprimir ticket" ya implica que se imprime aquí.
+  // Al reimprimir no: primero se revisa en pantalla si es el ticket correcto.
   useEffect(() => {
-    window.print();
+    if (!fechaOriginal) window.print();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -69,6 +74,8 @@ export function TicketModal({
           maxWidth: '100%',
           background: 'var(--surface)',
           borderRadius: 14,
+          maxHeight: '100%',
+          overflowY: 'auto',
           padding: 22,
           display: 'flex',
           flexDirection: 'column',
@@ -87,25 +94,34 @@ export function TicketModal({
         <div className={styles.folio}>Folio #{venta.folio}</div>
         <div className={styles.titulo}>Venta completada</div>
         <div className={styles.fechaAtendio}>
-          {formatoFechaHora.format(new Date())} · Atendió: {vendedorNombre}
+          {formatoFechaHora.format(fechaOriginal ?? new Date())} · Atendió: {vendedorNombre}
         </div>
+        {fechaOriginal && (
+          <div className={styles.metaTexto}>Reimpresión: {formatoFechaHora.format(new Date())}</div>
+        )}
         <div className={styles.metaTexto}>
-          Método: {ETIQUETA_METODO[venta.metodoPago]} · Comisión acreditada:{' '}
-          {formatoMXN.format(venta.comisionMonto)}
+          Método: {ETIQUETA_METODO[venta.metodoPago]}
+          {venta.comisionMonto !== null && ` · Comisión acreditada: ${formatoMXN.format(venta.comisionMonto)}`}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {lineas.map(({ linea, resultado }) => (
+          {lineas.map((linea, i) => (
             <div
-              key={linea.producto.id}
+              key={i}
               className={styles.lineaProducto}
               style={{ paddingBottom: 8, borderBottom: '1px dashed var(--border2)' }}
             >
               <span>
-                {linea.cantidad} × {nombreConColor(linea.producto.nombre, linea.producto.color)}
+                {linea.cantidad} × {linea.nombre}
                 {linea.probado ? ' · P' : ''}
+                {linea.cambio && (
+                  <div className={styles.notaCambio}>
+                    Cambiada por {linea.cambio.nombre}
+                    {linea.cambio.diferencia > 0 && ` (+${formatoMXN.format(linea.cambio.diferencia)})`}
+                  </div>
+                )}
               </span>
-              <span className={styles.lineaImporte}>{formatoMXN.format(resultado.importeLinea)}</span>
+              <span className={styles.lineaImporte}>{formatoMXN.format(linea.importe)}</span>
             </div>
           ))}
         </div>
@@ -124,18 +140,26 @@ export function TicketModal({
 
         <div className={styles.separador} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {lineas.some(({ linea }) => linea.probado) && (
+          {lineas.some((l) => l.probado) && (
             <div className={styles.leyenda}>{LEYENDA_PROBADA}</div>
           )}
           <div className={styles.leyenda}>{LEYENDA_APARTADOS}</div>
         </div>
 
-        <button type="button" className={styles.btnSecundario} onClick={() => window.print()}>
-          Imprimir de nuevo
+        <button
+          type="button"
+          className={fechaOriginal ? styles.btnPrimario : styles.btnSecundario}
+          onClick={() => window.print()}
+        >
+          {fechaOriginal ? 'Reimprimir' : 'Imprimir de nuevo'}
         </button>
 
-        <button type="button" className={styles.btnPrimario} onClick={onListo}>
-          Listo
+        <button
+          type="button"
+          className={fechaOriginal ? styles.btnSecundario : styles.btnPrimario}
+          onClick={onListo}
+        >
+          {fechaOriginal ? 'Cerrar' : 'Listo'}
         </button>
       </div>
     </div>

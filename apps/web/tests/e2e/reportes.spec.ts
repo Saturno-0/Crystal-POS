@@ -112,6 +112,61 @@ test.describe('Reportes y comisiones (HU-5.1 a HU-5.5, HU-2.5, HU-6.5)', () => {
     await expect(page.getByRole('button', { name: 'L', exact: true })).toHaveClass(/chipTallaActiva/);
   });
 
+  test('inventario: al terminar o cancelar una edición regresa a la misma altura de la lista', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    // Suficientes filas para que el inventario tenga scroll propio.
+    const filas = ['nombre,marca,categoria,talla,color,precio,cantidad,descuento_tipo,descuento_valor'];
+    for (let i = 10; i < 50; i++) filas.push(`Scroll UX ${i},TestMarca,Blusas,M,,300,1,,`);
+    await page.evaluate(async (csv) => {
+      const { token } = await (
+        await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuarioId: 1, nip: '1234' }),
+        })
+      ).json();
+      await fetch('/api/productos/importar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ csv, aplicar: true }),
+      });
+    }, filas.join('\n'));
+
+    await irA(page, 'Reportes');
+    const fila = (nombre: string) => page.locator('[class*="filaProducto"]').filter({ hasText: nombre });
+    const editar = (nombre: string) => fila(nombre).getByRole('button', { name: 'Editar', exact: true }).click();
+
+    await editar('Scroll UX 30');
+    await expect(page.getByText(/Editando/)).toBeInViewport();
+    await page.getByPlaceholder('$0.00').fill('310');
+    await page.getByRole('button', { name: 'Guardar cambios' }).click();
+    await expect(fila('Scroll UX 30')).toBeInViewport();
+    await expect(fila('Scroll UX 30').getByText('$310.00')).toBeVisible();
+
+    await editar('Scroll UX 32');
+    await page.getByRole('button', { name: 'Cancelar edición' }).click();
+    await expect(fila('Scroll UX 32')).toBeInViewport();
+
+    // Con el botón Reportes del menú, también.
+    await editar('Scroll UX 34');
+    await expect(page.getByText(/Editando/)).toBeVisible();
+    await irA(page, 'Reportes');
+    await expect(fila('Scroll UX 34')).toBeInViewport();
+
+    // Agotado desde la edición: ya no se lista, se queda en las filas vecinas.
+    await editar('Scroll UX 36');
+    await page.getByLabel('Cantidad en inventario').fill('0');
+    await page.getByRole('button', { name: 'Guardar cambios' }).click();
+    await expect(fila('Scroll UX 37')).toBeInViewport();
+    await expect(fila('Scroll UX 36')).toHaveCount(0);
+
+    // Entrando desde otra sección, Reportes empieza arriba.
+    await irA(page, 'Apartados');
+    await irA(page, 'Reportes');
+    await expect(page.getByRole('heading', { name: 'Reportes' })).toBeInViewport();
+    await expect(fila('Scroll UX 37')).not.toBeInViewport();
+  });
+
   test('el rail de navegación permanece fijo al hacer scroll dentro de Reportes', async ({ page }) => {
     await login(page, 'Crystal Domínguez');
     await irA(page, 'Reportes');

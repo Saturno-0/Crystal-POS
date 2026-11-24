@@ -156,6 +156,17 @@ duplica el efecto de montaje (comportamiento normal de React, no ocurre en el bu
 producción) — por eso `tests/e2e/impresion.spec.ts` solo exige "al menos una" llamada, no
 exactamente una.
 
+### Reimpresión
+
+Botón "Reimprimir ticket" (Venta) / "Reimprimir recibo" (Apartados), para Admin y Vendedor:
+`HistorialTickets.tsx` → `GET /api/tickets` y `/api/tickets/:folio`
+(`services/tickets.service.ts`). Muestra 31 días según `ventas.updated_at`, más los apartados
+aún activos aunque sean más viejos. Reutiliza `TicketModal`/`ReciboApartado` con
+`fechaOriginal` (no imprime solo al abrir y marca "Reimpresión"). Los importes son los
+guardados al vender; el nombre de la prenda es el actual del producto (no hay snapshot). La
+comisión solo se muestra a quien hizo la venta o a un Admin. En el ticket impreso todo token
+de color debe forzarse a negro en `print.css`: la térmica trama los colores y salen tenues.
+
 ## Respaldos (HU-6.5)
 
 Al iniciar la API y cada `HILO_RESPALDO_INTERVALO_HORAS` (default 6h) mientras el proceso

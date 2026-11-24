@@ -4,6 +4,7 @@ import * as apartadosApi from '../features/apartados/api';
 import type { ApartadoResumen, Salud } from '../features/apartados/api';
 import { ApiError } from '../lib/apiClient';
 import styles from './Apartados.module.css';
+import { HistorialTickets } from './HistorialTickets';
 
 const formatoMXN = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
 const formatoFecha = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' });
@@ -29,6 +30,7 @@ export function Apartados() {
   const { mostrar } = useToast();
   const [lista, setLista] = useState<ApartadoResumen[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [historialAbierto, setHistorialAbierto] = useState(false);
 
   async function recargar() {
     setLista(await apartadosApi.listarApartadosActivos());
@@ -79,11 +81,20 @@ export function Apartados() {
   return (
     <div className={styles.contenedor}>
       <div className={styles.encabezado}>
-        <h1>Apartados activos</h1>
-        <div className={styles.resumen}>
-          {lista.length} activos · {formatoMXN.format(totalPorCobrar)} por cobrar · {vencidos} vencidos
+        <div>
+          <h1>Apartados activos</h1>
+          <div className={styles.resumen}>
+            {lista.length} activos · {formatoMXN.format(totalPorCobrar)} por cobrar · {vencidos} vencidos
+          </div>
         </div>
+        <button type="button" className={styles.btnReimprimir} onClick={() => setHistorialAbierto(true)}>
+          Reimprimir recibo
+        </button>
       </div>
+
+      {historialAbierto && (
+        <HistorialTickets tipoInicial="apartado" onCerrar={() => setHistorialAbierto(false)} />
+      )}
 
       {!cargando && lista.length === 0 && (
         <div className={styles.vacioColumna}>No hay apartados activos por ahora.</div>

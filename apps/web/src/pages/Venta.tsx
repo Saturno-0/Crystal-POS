@@ -1,13 +1,14 @@
-import { calcularTotales, type MetodoPago, type Producto } from '@crystal/shared';
+import { calcularTotales, nombreConColor, type MetodoPago, type Producto } from '@crystal/shared';
 import { useEffect, useRef, useState } from 'react';
 import { useToast } from '../components/feedback/ToastProvider';
 import * as apartadosApi from '../features/apartados/api';
 import { useAuth } from '../features/auth/AuthContext';
+import type { LineaTicket } from '../features/tickets/api';
 import * as ventasApi from '../features/ventas/api';
-import type { LineaCarritoCalculada } from '../features/ventas/useCarrito';
 import { useCarrito } from '../features/ventas/useCarrito';
 import { ApiError } from '../lib/apiClient';
 import { Catalogo } from './Catalogo';
+import { HistorialTickets } from './HistorialTickets';
 import { PasarelaPago } from './PasarelaPago';
 import { ReciboApartado } from './ReciboApartado';
 import { TicketModal, type VentaParaTicket } from './TicketModal';
@@ -51,8 +52,9 @@ export function Venta({
   const [refrescarSenal, setRefrescarSenal] = useState(0);
   const [recibo, setRecibo] = useState<{
     venta: VentaParaTicket;
-    lineas: LineaCarritoCalculada[];
+    lineas: LineaTicket[];
   } | null>(null);
+  const [historialAbierto, setHistorialAbierto] = useState(false);
   const [reciboApartado, setReciboApartado] = useState<apartadosApi.ApartadoCreado | null>(null);
 
   function cobrar() {
@@ -82,7 +84,12 @@ export function Venta({
   }
 
   async function confirmarPago(metodoPago: MetodoPago, efectivoRecibido?: number) {
-    const lineasSnapshot = carrito.calculadas;
+    const lineasSnapshot = carrito.calculadas.map(({ linea, resultado }) => ({
+      nombre: nombreConColor(linea.producto.nombre, linea.producto.color),
+      cantidad: linea.cantidad,
+      probado: linea.probado,
+      importe: resultado.importeLinea,
+    }));
     const venta = await ventasApi.crearVentaDirecta({
       lineas: lineasParaApi(),
       metodoPago,
@@ -146,6 +153,9 @@ export function Venta({
           <span className={styles.vendedorEtiqueta}>Vendiendo como</span>
           <span className={styles.vendedorNombre}>{usuario?.nombre}</span>
         </div>
+        <button type="button" className={styles.btnReimprimir} onClick={() => setHistorialAbierto(true)}>
+          Reimprimir ticket
+        </button>
         <button type="button" className={styles.btnCambiarUsuario} onClick={onCambiarUsuario}>
           ¿No eres tú? Cambiar usuario
         </button>
@@ -191,6 +201,9 @@ export function Venta({
             onCancelar={() => setPasarelaAbierta(false)}
           />
         )}
+
+        {/* Modal (no pantalla aparte) para no perder el ticket en captura. */}
+        {historialAbierto && <HistorialTickets onCerrar={() => setHistorialAbierto(false)} />}
 
         {recibo && (
           <TicketModal

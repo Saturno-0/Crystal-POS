@@ -1,5 +1,5 @@
 import type { Producto } from '@crystal/shared';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useToast } from '../components/feedback/ToastProvider';
 import * as actualizacionApi from '../features/actualizacion/api';
 import type { InfoActualizacion } from '../features/actualizacion/api';
@@ -31,8 +31,21 @@ const PERIODOS: { key: Periodo; label: string }[] = [
   { key: 'anio', label: 'Año' },
 ];
 
+/** Fila del inventario desde la que se abrió la edición de un producto. */
+export interface PosicionInventario {
+  productoId: number;
+  indice: number;
+}
+
 /** Reportes y comisiones (HU-5.1 a HU-5.5) + inventario editable (HU-2.5), solo Admin. */
-export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Producto) => void }) {
+export function Reportes({
+  posicionInicial,
+  onEditarProducto,
+}: {
+  /** Al volver de editar: fila del inventario a la que hay que regresar. */
+  posicionInicial: PosicionInventario | null;
+  onEditarProducto: (producto: Producto, posicion: PosicionInventario) => void;
+}) {
   const { mostrar } = useToast();
   const [periodo, setPeriodo] = useState<Periodo>('mes');
   const [reporte, setReporte] = useState<Reporte | null>(null);
@@ -42,6 +55,7 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
   const [cargando, setCargando] = useState(true);
   const [exportando, setExportando] = useState(false);
   const [respaldos, setRespaldos] = useState<Respaldo[]>([]);
+  const [respaldosCargados, setRespaldosCargados] = useState(false);
   const [respaldando, setRespaldando] = useState(false);
   const [actualizacion, setActualizacion] = useState<InfoActualizacion | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -64,8 +78,27 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
   }, [periodo]);
 
   useEffect(() => {
-    respaldosApi.listarRespaldos().then(setRespaldos).catch(() => undefined);
+    respaldosApi
+      .listarRespaldos()
+      .then(setRespaldos)
+      .catch(() => undefined)
+      .finally(() => setRespaldosCargados(true));
   }, []);
+
+  // El panel de respaldos va arriba del inventario: si se posiciona antes de
+  // que cargue, la lista se recorre hacia abajo.
+  const inventarioRef = useRef<HTMLDivElement>(null);
+  const posicionRestaurada = useRef(false);
+  const listo = reporte !== null && respaldosCargados;
+  useLayoutEffect(() => {
+    if (!listo || !posicionInicial || posicionRestaurada.current) return;
+    posicionRestaurada.current = true;
+    // Si el producto ya no se lista (quedó en 0), se va a la fila que tomó su lugar.
+    const indice = productosOrdenados.findIndex((p) => p.id === posicionInicial.productoId);
+    const fila = indice >= 0 ? indice : Math.min(posicionInicial.indice, productosOrdenados.length - 1);
+    inventarioRef.current?.children[fila]?.scrollIntoView({ block: 'center' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listo]);
 
   useEffect(() => {
     actualizacionApi
@@ -293,8 +326,8 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
           <h2 className={styles.tituloPanel}>Inventario · {productos.length}</h2>
           <SelectorOrden valor={orden} onChange={setOrden} />
         </div>
-        <div className={styles.tablaInventario}>
-          {productosOrdenados.map((p) => (
+        <div className={styles.tablaInventario} ref={inventarioRef}>
+          {productosOrdenados.map((p, indice) => (
             <div key={p.id} className={styles.filaProducto}>
               <span>
                 <div>{p.nombre}</div>
@@ -307,7 +340,11 @@ export function Reportes({ onEditarProducto }: { onEditarProducto: (producto: Pr
               <span>{p.stock} stock</span>
               <span>{p.vendidos} vendidos</span>
               <span className={styles.accionesProducto}>
-                <button type="button" className={styles.btnAccion} onClick={() => onEditarProducto(p)}>
+                <button
+                  type="button"
+                  className={styles.btnAccion}
+                  onClick={() => onEditarProducto(p, { productoId: p.id, indice })}
+                >
                   Editar
                 </button>
                 <button type="button" className={styles.btnPeligro} onClick={() => eliminarProducto(p)}>

@@ -8,7 +8,7 @@ import { CambioUsuario } from './pages/CambioUsuario';
 import { Cambios } from './pages/Cambios';
 import { Login } from './pages/Login';
 import { Personal } from './pages/Personal';
-import { Reportes } from './pages/Reportes';
+import { Reportes, type PosicionInventario } from './pages/Reportes';
 import { Venta } from './pages/Venta';
 
 type Vista = 'pos' | 'inv' | 'apa' | 'cmb' | 'ana' | 'per' | 'cambio';
@@ -36,6 +36,7 @@ export function App() {
   const { usuario } = useAuth();
   const [vista, setVista] = useState<Vista>('pos');
   const [productoEditando, setProductoEditando] = useState<Producto | null>(null);
+  const [posicionInventario, setPosicionInventario] = useState<PosicionInventario | null>(null);
   const [productoParaVender, setProductoParaVender] = useState<Producto | null>(null);
 
   const esAdmin = usuario?.rol === 'admin';
@@ -49,8 +50,9 @@ export function App() {
   // estado quedara apuntando ahí de una sesión anterior con otro rol.
   const vistaSegura = !esAdmin && VISTAS_SOLO_ADMIN.includes(vista) ? 'pos' : vista;
 
-  function irAEditarProducto(producto: Producto) {
+  function irAEditarProducto(producto: Producto, posicion: PosicionInventario) {
     setProductoEditando(producto);
+    setPosicionInventario(posicion);
     setVista('inv');
   }
 
@@ -65,6 +67,9 @@ export function App() {
   }
 
   function navegar(key: string) {
+    // Volver a Reportes a media edición regresa a la misma altura del
+    // inventario; ir a cualquier otra sección la olvida.
+    if (!(key === 'ana' && productoEditando)) setPosicionInventario(null);
     if (key !== 'inv') setProductoEditando(null);
     setVista(key as Vista);
   }
@@ -93,7 +98,9 @@ export function App() {
       )}
       {vistaSegura === 'apa' && <Apartados />}
       {vistaSegura === 'cmb' && <Cambios />}
-      {vistaSegura === 'ana' && <Reportes onEditarProducto={irAEditarProducto} />}
+      {vistaSegura === 'ana' && (
+        <Reportes posicionInicial={posicionInventario} onEditarProducto={irAEditarProducto} />
+      )}
       {vistaSegura === 'per' && <Personal />}
       {vistaSegura === 'cambio' && <CambioUsuario />}
     </AppShell>
