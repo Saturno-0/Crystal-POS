@@ -197,6 +197,73 @@ describe('crearLotePorTallas', () => {
     ).toThrow('Esta categoría no maneja tallas');
   });
 
+  it('una talla puede llevar su propio precio; el resto usa el general', () => {
+    const creados = productos.crearLotePorTallas(
+      db,
+      {
+        nombre: 'Blusa lino',
+        marca: 'Zara',
+        categoriaId: blusasId,
+        precio: 320,
+        cantidades: { M: 2, XL: 1, XXL: 1 },
+        // S no trae piezas: su precio se ignora.
+        precios: { S: 0, XL: 350, XXL: 380.5 },
+      },
+      ACTOR_ID,
+    );
+    expect(Object.fromEntries(creados.map((p) => [p.talla, p.precio]))).toEqual({
+      M: 320,
+      XL: 350,
+      XXL: 380.5,
+    });
+  });
+
+  it('rechaza un precio por talla inválido sin guardar nada', () => {
+    for (const malo of [0, -5, Number.NaN, '350' as unknown as number]) {
+      expect(() =>
+        productos.crearLotePorTallas(
+          db,
+          {
+            nombre: 'Blusa lino',
+            marca: 'Zara',
+            categoriaId: blusasId,
+            precio: 320,
+            cantidades: { M: 2, XL: 1 },
+            precios: { XL: malo },
+          },
+          ACTOR_ID,
+        ),
+      ).toThrow('Precio inválido para la talla XL');
+    }
+    expect(productos.listar(db, {})).toHaveLength(0);
+  });
+
+  it('en categorías por color, el precio por talla es de cada color', () => {
+    const sacosId = Number(
+      db.prepare("INSERT INTO categorias (nombre, tipo_talla, por_color) VALUES ('Sacos','estandar_ropa',1)").run()
+        .lastInsertRowid,
+    );
+    const creados = productos.crearLotePorTallas(
+      db,
+      {
+        nombre: 'Saco',
+        marca: 'Sastre',
+        categoriaId: sacosId,
+        precio: 1500,
+        porColor: [
+          { color: 'Negro', cantidades: { M: 1, XL: 1 }, precios: { XL: 1700 } },
+          { color: 'Gris', cantidades: { XL: 1 } },
+        ],
+      },
+      ACTOR_ID,
+    );
+    expect(creados.map((p) => [p.color, p.talla, p.precio])).toEqual([
+      ['Negro', 'M', 1500],
+      ['Negro', 'XL', 1700],
+      ['Gris', 'XL', 1500],
+    ]);
+  });
+
   it('rechaza si no hay ninguna cantidad mayor a cero', () => {
     expect(() =>
       productos.crearLotePorTallas(
@@ -223,6 +290,36 @@ describe('listar (HU-2.6)', () => {
     expect(productos.listar(db, { busqueda: 'jean' })).toHaveLength(1);
     expect(productos.listar(db, { busqueda: 'zara' })).toHaveLength(1);
     expect(productos.listar(db, {})).toHaveLength(2);
+  });
+
+  it('combina palabras de distintos campos, en cualquier orden y sin acentos', () => {
+    productos.crear(
+      db,
+      { nombre: 'Pantalón recto', marca: 'Levis', categoriaId: mezclillaId, talla: '7', precio: 590 },
+      ACTOR_ID,
+    );
+    for (const talla of ['XL', 'XXL']) {
+      productos.crear(
+        db,
+        { nombre: 'Blusa lino', marca: 'Zara', categoriaId: blusasId, talla, precio: 420 },
+        ACTOR_ID,
+      );
+    }
+    productos.crear(
+      db,
+      { nombre: 'Blusa seda', marca: 'Mango', categoriaId: blusasId, talla: 'M', precio: 420 },
+      ACTOR_ID,
+    );
+    const buscar = (busqueda: string) => productos.listar(db, { busqueda }).map((p) => `${p.nombre} ${p.talla}`);
+    expect(buscar('blusa lino zara')).toHaveLength(2);
+    expect(buscar('  ZARA   blu ')).toHaveLength(2);
+    expect(buscar('pantalon levis')).toEqual(['Pantalón recto 7']);
+    expect(buscar('blusa zara xl')).toEqual(['Blusa lino XL']);
+    expect(buscar('zar bl')).toHaveLength(2);
+    // Todas las palabras deben aparecer, y % no es comodín.
+    expect(buscar('blusa levis')).toEqual([]);
+    expect(buscar('%')).toEqual([]);
+    expect(buscar('   ')).toHaveLength(4);
   });
 
   it('filtra por categoría', () => {
@@ -307,6 +404,24 @@ describe('alta de una prenda que ya existe', () => {
     expect(lote.find((p) => p.talla === '7')).toMatchObject({ stock: 5, reabastecido: true });
     expect(lote.find((p) => p.talla === '9')).toMatchObject({ stock: 1, reabastecido: false });
     expect(productos.listar(db, {})).toHaveLength(2);
+  });
+});
+
+describe('listarExistentes', () => {
+  it('devuelve el precio de cada talla, incluidas agotadas y eliminadas', () => {
+    const base = { nombre: 'Blusa Lino', marca: 'Zara', categoriaId: blusasId };
+    productos.crearLotePorTallas(
+      db,
+      { ...base, precio: 320, cantidades: { M: 1, L: 1, XL: 1 }, precios: { XL: 350 } },
+      ACTOR_ID,
+    );
+    productos.crear(db, { ...base, marca: 'Mango', talla: 'XXL', precio: 999 }, ACTOR_ID);
+    db.prepare("UPDATE productos SET stock = 0 WHERE talla = 'XL'").run();
+    db.prepare("UPDATE productos SET activo = 0 WHERE talla = 'L'").run();
+
+    const existentes = productos.listarExistentes(db, { ...base, nombre: ' blusa  LINO', marca: 'zara' });
+    expect(Object.fromEntries(existentes.map((e) => [e.talla, e.precio]))).toEqual({ M: 320, L: 320, XL: 350 });
+    expect(productos.listarExistentes(db, { ...base, categoriaId: chamarrasId })).toEqual([]);
   });
 });
 

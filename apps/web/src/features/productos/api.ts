@@ -54,9 +54,30 @@ export function crearProducto(input: CrearProductoInput) {
   });
 }
 
-export interface FilaColor {
-  color: string;
+/** Talla/color ya registrado de una prenda (aunque esté agotado) y su precio actual. */
+export interface ProductoExistente {
+  talla: string | null;
+  color: string | null;
+  precio: number;
+}
+
+export function listarExistentes(datos: { nombre: string; marca: string; categoriaId: number }) {
+  const params = new URLSearchParams({
+    nombre: datos.nombre,
+    marca: datos.marca,
+    categoriaId: String(datos.categoriaId),
+  });
+  return apiFetch<ProductoExistente[]>(`/api/productos/existentes?${params.toString()}`);
+}
+
+/** Cantidad por talla y, solo en las que difieren del precio general, su precio. */
+export interface DistribucionTallas {
   cantidades: Record<string, number>;
+  precios: Record<string, number>;
+}
+
+export interface FilaColor extends DistribucionTallas {
+  color: string;
 }
 
 export interface CrearLotePorTallasInput {
@@ -65,6 +86,7 @@ export interface CrearLotePorTallasInput {
   categoriaId: number;
   precio: number;
   cantidades?: Record<string, number>;
+  precios?: Record<string, number>;
   porColor?: FilaColor[];
   descuentoTipo?: TipoDescuento;
   descuentoValor?: number;

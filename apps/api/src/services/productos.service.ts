@@ -3,6 +3,7 @@ import {
   COLOR_MAX_CARACTERES,
   DESCUENTOS_VESTIDO,
   TALLAS_POR_TIPO,
+  claveTexto,
   normalizarColor,
   type TipoDescuento,
   type TipoTalla,
@@ -81,7 +82,7 @@ function generarSku(db: Database.Database, marca: string, categoriaNombre: strin
   return sku;
 }
 
-// Regla 7: pantalones 1–15, el resto XS–XL; regla 6: vestidos sin talla ('Única').
+// Regla 7: pantalones 1–15, el resto XS–XXL; regla 6: vestidos sin talla ('Única').
 function normalizarTalla(categoria: CategoriaRow, tallaInput: string | null | undefined): string | null {
   if (categoria.tipo_talla === 'sin_talla') return 'Única';
   const opciones = TALLAS_POR_TIPO[categoria.tipo_talla] as readonly string[];
@@ -119,17 +120,6 @@ function normalizarDescuentoVestido(
   return { descuentoTipo: tipo, descuentoValor: valor };
 }
 
-// Para reconocer una prenda que ya existe al darla de alta otra vez: sin
-// importar mayúsculas, acentos ni espacios de más ("Pantalón  Slim" = "pantalon slim").
-export function claveTexto(texto: string | null): string {
-  return (texto ?? '')
-    .trim()
-    .replace(/\s+/g, ' ')
-    .toLocaleLowerCase('es-MX')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-}
-
 // Mismo nombre, marca, categoría, talla y color = la misma prenda. Incluye
 // productos agotados o eliminados (activo = 0): al volver a llegar se reusan
 // en vez de crear un duplicado. Prefiere uno activo, y el más reciente.
@@ -149,6 +139,37 @@ function buscarExistente(
       claveTexto(p.marca) === claveTexto(datos.marca) &&
       claveTexto(p.color) === claveTexto(datos.color),
   );
+}
+
+export interface ProductoExistente {
+  talla: string | null;
+  color: string | null;
+  precio: number;
+}
+
+/**
+ * Tallas/colores de una prenda que ya existen —agotadas o eliminadas incluidas,
+ * igual que buscarExistente— con su precio actual. El modal de alta por tallas
+ * lo usa para no pisar el precio especial de una talla al resurtir.
+ */
+export function listarExistentes(
+  db: Database.Database,
+  datos: { nombre: string; marca: string; categoriaId: number },
+): ProductoExistente[] {
+  const nombre = claveTexto(datos.nombre);
+  const marca = claveTexto(datos.marca);
+  // Mismo orden que buscarExistente: la primera de cada talla × color es la
+  // que recibiría el stock.
+  const filas = db
+    .prepare('SELECT * FROM productos WHERE categoria_id = ? ORDER BY activo DESC, id DESC')
+    .all(datos.categoriaId) as ProductoRow[];
+  const unicas = new Map<string, ProductoExistente>();
+  for (const p of filas) {
+    if (claveTexto(p.nombre) !== nombre || claveTexto(p.marca) !== marca) continue;
+    const clave = `${p.talla ?? ''}|${claveTexto(p.color)}`;
+    if (!unicas.has(clave)) unicas.set(clave, { talla: p.talla, color: p.color, precio: p.precio });
+  }
+  return [...unicas.values()];
 }
 
 interface AltaUnidad {
@@ -249,6 +270,17 @@ export interface FiltrosProducto {
   categoriaId?: number;
 }
 
+// Cada palabra puede estar en un campo distinto y en cualquier orden ("blusa
+// zara", "zara xl"), pero deben aparecer todas. La talla se compara completa:
+// "xl" no debe traer también las XXL. Se filtra aquí y no con LIKE porque
+// SQLite no ignora acentos.
+function coincideBusqueda(p: ProductoRow, palabras: string[]): boolean {
+  if (palabras.length === 0) return true;
+  const campos = [p.nombre, p.marca, p.sku, p.color].map(claveTexto);
+  const talla = claveTexto(p.talla);
+  return palabras.every((palabra) => palabra === talla || campos.some((c) => c.includes(palabra)));
+}
+
 export function listar(db: Database.Database, filtros: FiltrosProducto = {}) {
   // Agotados (stock 0) no se listan: ni en Venta ni en Inventario. Siguen en
   // la BD (las ventas los referencian) y reaparecen solos si la unidad
@@ -259,16 +291,11 @@ export function listar(db: Database.Database, filtros: FiltrosProducto = {}) {
     condiciones.push('categoria_id = @categoriaId');
     params.categoriaId = filtros.categoriaId;
   }
-  if (filtros.busqueda) {
-    condiciones.push(
-      '(nombre LIKE @busqueda OR marca LIKE @busqueda OR sku LIKE @busqueda OR color LIKE @busqueda)',
-    );
-    params.busqueda = `%${filtros.busqueda}%`;
-  }
   const filas = db
     .prepare(`SELECT * FROM productos WHERE ${condiciones.join(' AND ')} ORDER BY nombre`)
     .all(params) as ProductoRow[];
-  return filas.map(aPublico);
+  const palabras = claveTexto(filtros.busqueda).split(' ').filter(Boolean);
+  return filas.filter((p) => coincideBusqueda(p, palabras)).map(aPublico);
 }
 
 export interface CrearProductoInput {
@@ -313,14 +340,17 @@ export interface CrearLotePorTallasInput {
   precio: number;
   // Categorías sin color: cantidad por talla.
   cantidades?: Record<string, number>;
+  // Precio propio de algunas tallas (p. ej. XL más cara); el resto usa `precio`.
+  precios?: Record<string, number>;
   // Categorías por color: una fila de tallas por cada color.
-  porColor?: { color: string; cantidades: Record<string, number> }[];
+  porColor?: { color: string; cantidades: Record<string, number>; precios?: Record<string, number> }[];
   descuentoTipo?: TipoDescuento;
   descuentoValor?: number;
 }
 
 // Alta rápida para prendas idénticas salvo talla (ej. mismo pantalón en varias
-// tallas): una fila/SKU por talla, todas con el mismo nombre/marca/precio/descuento.
+// tallas): una fila/SKU por talla, todas con el mismo nombre/marca/descuento y el mismo
+// precio, salvo las tallas que traigan uno propio en `precios`.
 export function crearLotePorTallas(
   db: Database.Database,
   input: CrearLotePorTallasInput,
@@ -341,8 +371,12 @@ export function crearLotePorTallas(
   const descuento = normalizarDescuentoVestido(categoria, input.descuentoTipo, input.descuentoValor);
 
   // Una entrada = un SKU: (talla, color, cantidad). Sin color → color null.
-  const entradas: { talla: string; color: string | null; cantidad: number }[] = [];
-  const agregar = (cantidades: Record<string, number>, color: string | null) => {
+  const entradas: { talla: string; color: string | null; cantidad: number; precio: number }[] = [];
+  const agregar = (
+    cantidades: Record<string, number>,
+    precios: Record<string, number> | undefined,
+    color: string | null,
+  ) => {
     for (const [talla, cantidad] of Object.entries(cantidades ?? {})) {
       if (cantidad === 0) continue;
       normalizarTalla(categoria, talla);
@@ -351,7 +385,13 @@ export function crearLotePorTallas(
           `Cantidad inválida para la talla ${talla}${color ? ` en color ${color}` : ''}`,
         );
       }
-      entradas.push({ talla, color, cantidad });
+      const precio = precios?.[talla] ?? input.precio;
+      if (!Number.isFinite(precio) || precio <= 0) {
+        throw new ValidationError(
+          `Precio inválido para la talla ${talla}${color ? ` en color ${color}` : ''}`,
+        );
+      }
+      entradas.push({ talla, color, cantidad, precio });
     }
   };
 
@@ -361,10 +401,10 @@ export function crearLotePorTallas(
       const color = normalizarColorProducto(categoria, fila.color);
       if (vistos.has(color!)) throw new ValidationError(`El color ${color} está repetido`);
       vistos.add(color!);
-      agregar(fila.cantidades, color);
+      agregar(fila.cantidades, fila.precios, color);
     }
   } else {
-    agregar(input.cantidades ?? {}, null);
+    agregar(input.cantidades ?? {}, input.precios, null);
   }
   if (entradas.length === 0) {
     throw new ValidationError(
@@ -375,10 +415,10 @@ export function crearLotePorTallas(
   }
 
   const ejecutar = db.transaction(() =>
-    entradas.map(({ talla, color, cantidad }) =>
+    entradas.map(({ talla, color, cantidad, precio }) =>
       darDeAlta(
         db,
-        { nombre, marca, categoria, talla, color, precio: input.precio, cantidad, descuento },
+        { nombre, marca, categoria, talla, color, precio, cantidad, descuento },
         actorId,
       ),
     ),

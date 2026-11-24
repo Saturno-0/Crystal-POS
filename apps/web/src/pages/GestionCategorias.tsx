@@ -7,7 +7,7 @@ import styles from './Alta.module.css';
 
 const ETIQUETA_TIPO_TALLA: Record<TipoTalla, string> = {
   numerica_pantalon: 'Numérica (pantalón)',
-  estandar_ropa: 'XS–XL',
+  estandar_ropa: 'XS–XXL',
   sin_talla: 'Sin talla',
 };
 

@@ -105,7 +105,9 @@ No hay lint configurado en `apps/api` ni `packages/shared`.
 4. Efectivo y Transferencia aplican −$15; Tarjeta no.
 5. Descuento manual de línea sobrescribe el descuento automático de la prenda.
 6. Vestidos: sin talla, con descuento propio (10 %, $100 o $40).
-7. Pantalones usan tallas 1–15; el resto XS–XL.
+7. Pantalones usan tallas 1–15; el resto XS–XXL. Una talla puede costar distinto (p. ej. XL):
+   mismo nombre y marca con otro precio, capturado por talla en "Alta por tallas"; en Venta
+   se muestra como tarjeta aparte.
 8. Comisión con tasa individual sobre el ingreso **neto** (después de descuentos de
    artículo y de método de pago), acreditada al usuario en sesión. El Admin también
    vende y genera comisión, igual que un Vendedor.
@@ -129,7 +131,11 @@ No hay lint configurado en `apps/api` ni `packages/shared`.
   (sin distinguir mayúsculas/acentos/espacios) **suma al stock** del producto existente
   —incluso si estaba agotado o eliminado, que se reactiva— en vez de crear otro SKU; el
   precio y descuento quedan con lo capturado en esa alta (`darDeAlta`, auditado como
-  `producto.reabastecer`).
+  `producto.reabastecer`). En "Alta por tallas" el modal precarga el precio actual de las
+  tallas que ya existen con uno distinto al general (`GET /api/productos/existentes`), para
+  no pisarlo al resurtir.
+- La búsqueda (`listar`) separa por palabras: todas deben aparecer, en cualquier orden y
+  campo (nombre, marca, SKU, color o talla exacta), sin distinguir mayúsculas ni acentos.
 
 ## Importación masiva por CSV
 

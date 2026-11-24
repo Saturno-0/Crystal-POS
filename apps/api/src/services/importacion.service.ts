@@ -1,8 +1,8 @@
 import type Database from 'better-sqlite3';
-import type { TipoDescuento } from '@crystal/shared';
+import { claveTexto, type TipoDescuento } from '@crystal/shared';
 import { parseCsv } from '../lib/csv.js';
 import { ValidationError } from '../lib/errors.js';
-import { claveTexto, crear } from './productos.service.js';
+import { crear } from './productos.service.js';
 
 export const MAX_FILAS_IMPORTACION = 1000;
 

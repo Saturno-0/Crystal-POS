@@ -63,7 +63,7 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await page.getByPlaceholder('Marca').fill('TestMarca');
     await page.getByPlaceholder('$0.00').fill('900');
     await page.getByRole('button', { name: 'Mezclilla', exact: true }).click();
-    // Regla 7: pantalones usan tallas numéricas 1–15, no XS–XL.
+    // Regla 7: pantalones usan tallas numéricas 1–15, no XS–XXL.
     await expect(page.getByRole('button', { name: 'XS', exact: true })).not.toBeVisible();
     await page.getByRole('button', { name: '7', exact: true }).click();
 
@@ -126,6 +126,78 @@ test.describe('Alta de inventario (HU-2.1 a HU-2.3)', () => {
     await expect(selector).not.toBeVisible();
 
     await expect(page.getByText('Subtotal · 1 pzas')).toBeVisible();
+  });
+
+  test('XL con precio propio: se vende aparte, se busca por nombre + marca y se conserva al resurtir', async ({ page }) => {
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Alta');
+
+    async function abrirModal() {
+      await page.getByPlaceholder('Ej. Jean recto tiro alto').fill('Blusa precio talla');
+      await page.getByPlaceholder('Marca').fill('Marquesa');
+      await page.getByPlaceholder('$0.00').fill('320');
+      await page.getByRole('button', { name: 'Blusas', exact: true }).click();
+      await page.getByRole('button', { name: 'Por lote' }).click();
+      await page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }).click();
+      await expect(page.getByLabel('Cantidad talla M', { exact: true })).toBeVisible();
+    }
+
+    await abrirModal();
+    await page.getByLabel('Cantidad talla M', { exact: true }).fill('2');
+    await page.getByLabel('Cantidad talla XXL', { exact: true }).fill('1');
+    await expect(page.getByLabel('Precio talla XXL', { exact: true })).not.toBeVisible();
+    await page.getByRole('button', { name: 'Poner otro precio a algunas tallas' }).click();
+    await page.getByLabel('Precio talla XXL', { exact: true }).fill('0');
+    await expect(page.getByText('Precio inválido en talla XXL')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Dar de alta 3 piezas' })).toBeDisabled();
+    await page.getByLabel('Precio talla XXL', { exact: true }).fill('350');
+    await page.getByRole('button', { name: 'Dar de alta 3 piezas' }).click();
+    await expect(page.getByText('3 piezas dadas de alta en 2 tallas')).toBeVisible();
+
+    // Resurtir con el precio general: la XXL llega con sus $350 ya puestos.
+    await abrirModal();
+    await expect(page.getByLabel('Precio talla XXL', { exact: true })).toHaveValue('350');
+    await expect(page.getByLabel('Precio talla M', { exact: true })).toHaveValue('');
+    await page.getByLabel('Cantidad talla M', { exact: true }).fill('1');
+    await page.getByLabel('Cantidad talla XXL', { exact: true }).fill('1');
+    await page.getByRole('button', { name: 'Dar de alta 2 piezas' }).click();
+    await expect(page.getByText(/2 ya existían y se sumaron a su stock/)).toBeVisible();
+
+    await irA(page, 'Venta');
+    const buscador = page.getByPlaceholder('Buscar nombre, marca o SKU…');
+    await buscador.fill('blusa precio marquesa');
+    // Espera a que se aplique el filtro (debounce) antes de contar.
+    await expect(page.getByText('Blusa UX test')).toHaveCount(0);
+    await expect(page.getByText('Blusa precio talla')).toHaveCount(2);
+    await expect(page.getByText('$320.00')).toBeVisible();
+    await expect(page.getByText('$350.00')).toBeVisible();
+    await buscador.fill('marquesa xxl');
+    await expect(page.getByText('Blusa precio talla')).toHaveCount(1);
+    await expect(page.getByText('$350.00')).toBeVisible();
+  });
+
+  test('en móvil los precios por talla caben en el modal', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await login(page, 'Crystal Domínguez');
+    await irA(page, 'Alta');
+    await page.getByPlaceholder('Ej. Jean recto tiro alto').fill('Blusa precio movil');
+    await page.getByPlaceholder('Marca').fill('Marquesa');
+    await page.getByPlaceholder('$0.00').fill('320');
+    await page.getByRole('button', { name: 'Blusas', exact: true }).click();
+    await page.getByRole('button', { name: 'Por lote' }).click();
+    await page.getByRole('button', { name: 'Alta por tallas (varias cantidades a la vez)' }).click();
+    await page.getByRole('button', { name: 'Poner otro precio a algunas tallas' }).click();
+
+    const tarjeta = (await page.getByText('Cantidad por talla').locator('..').boundingBox())!;
+    expect(tarjeta.x + tarjeta.width).toBeLessThanOrEqual(360);
+    for (const talla of ['XS', 'S', 'M', 'L', 'XL', 'XXL']) {
+      const caja = (await page.getByLabel(`Precio talla ${talla}`, { exact: true }).boundingBox())!;
+      expect(caja.x + caja.width).toBeLessThanOrEqual(tarjeta.x + tarjeta.width + 1);
+    }
+    const confirmar = (await page.getByRole('button', { name: 'Dar de alta 0 piezas' }).boundingBox())!;
+    expect(confirmar.height).toBeGreaterThanOrEqual(44);
+    await page.getByRole('button', { name: 'Usar $320.00 en todas' }).click();
+    await expect(page.getByLabel('Precio talla XL', { exact: true })).not.toBeVisible();
   });
 
   test('pieza única no ofrece alta por tallas', async ({ page }) => {

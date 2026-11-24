@@ -1,9 +1,9 @@
 import type { TipoDescuento, TipoTalla } from './types.js';
 
-// Reglas 6 y 7 de CLAUDE.md: pantalones 1–15, el resto XS–XL, vestidos sin talla.
+// Reglas 6 y 7 de CLAUDE.md: pantalones 1–15, el resto XS–XXL, vestidos sin talla.
 export const TALLAS_POR_TIPO: Record<TipoTalla, readonly string[] | null> = {
   numerica_pantalon: ['1', '3', '5', '7', '9', '11', '13', '15'],
-  estandar_ropa: ['XS', 'S', 'M', 'L', 'XL'],
+  estandar_ropa: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
   sin_talla: null,
 };
 
@@ -54,6 +54,17 @@ export function normalizarColor(color: string | null | undefined): string | null
   if (!limpio) return null;
   const minus = limpio.toLocaleLowerCase('es-MX');
   return minus.charAt(0).toLocaleUpperCase('es-MX') + minus.slice(1);
+}
+
+// Texto comparable sin importar mayúsculas, acentos ni espacios de más
+// ("Pantalón  Slim" = "pantalon slim"): reconocer prendas repetidas y buscar.
+export function claveTexto(texto: string | null | undefined): string {
+  return (texto ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase('es-MX')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
 }
 
 // Para ticket, carrito y apartados: "Saco slim — Negro".

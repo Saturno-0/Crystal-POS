@@ -52,6 +52,7 @@ export function Alta({
   const [stockEditado, setStockEditado] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [modalTallasAbierto, setModalTallasAbierto] = useState(false);
+  const [existentes, setExistentes] = useState<productosApi.ProductoExistente[]>([]);
   const [modalCsvAbierto, setModalCsvAbierto] = useState(false);
 
   const cargarCategorias = useCallback(
@@ -202,18 +203,31 @@ export function Alta({
 
   const skuPreview = `${prefijoSku(marca, 3)}-${prefijoSku(categoria?.nombre ?? '', 2)}-•••••`;
 
-  function abrirModalTallas() {
+  async function abrirModalTallas() {
+    if (enviando) return;
     if (!nombre.trim()) return mostrar('Captura el nombre del producto');
     const precioNumero = Number(precio);
     if (!precio || !Number.isFinite(precioNumero) || precioNumero <= 0) {
       return mostrar('Captura un precio válido');
     }
     if (!categoriaId) return mostrar('Selecciona una categoría');
-    setModalTallasAbierto(true);
+    // Sin esta consulta, resurtir pisaría el precio especial de alguna talla:
+    // si falla, mejor no abrir el modal.
+    setEnviando(true);
+    try {
+      setExistentes(
+        await productosApi.listarExistentes({ nombre: nombre.trim(), marca: marca.trim(), categoriaId }),
+      );
+      setModalTallasAbierto(true);
+    } catch (err) {
+      mostrar(err instanceof ApiError ? err.message : 'No se pudieron consultar las tallas ya registradas');
+    } finally {
+      setEnviando(false);
+    }
   }
 
   async function enviarLotePorTallas(
-    distribucion: { cantidades: Record<string, number> } | { porColor: productosApi.FilaColor[] },
+    distribucion: productosApi.DistribucionTallas | { porColor: productosApi.FilaColor[] },
   ) {
     if (enviando || !categoriaId) return;
     const precioNumero = Number(precio);
@@ -374,7 +388,7 @@ export function Alta({
 
         {/* Pieza única = 1 pieza, 1 talla: el alta por tallas solo tiene sentido en "Por lote". */}
         {!editando && !esVestido && modo === 'lote' && (
-          <button type="button" className={styles.btnLotePorTallas} onClick={abrirModalTallas}>
+          <button type="button" className={styles.btnLotePorTallas} disabled={enviando} onClick={abrirModalTallas}>
             {porColor
               ? 'Alta por color y talla (varias cantidades a la vez)'
               : 'Alta por tallas (varias cantidades a la vez)'}
@@ -478,9 +492,11 @@ export function Alta({
         <ModalLotePorTallas
           tallas={opcionesTalla}
           porColor={porColor}
+          precioGeneral={Number(precio)}
+          existentes={existentes}
           enviando={enviando}
           onCerrar={() => setModalTallasAbierto(false)}
-          onConfirmar={(cantidades) => enviarLotePorTallas({ cantidades })}
+          onConfirmar={enviarLotePorTallas}
           onConfirmarPorColor={(filas) => enviarLotePorTallas({ porColor: filas })}
         />
       )}

@@ -1,7 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 import { irA, login } from './helpers';
 
-async function crearCategoriaPorColor(page: Page, nombre: string, tipo: 'XS–XL' | 'Numérica (pantalón)') {
+async function crearCategoriaPorColor(page: Page, nombre: string, tipo: 'XS–XXL' | 'Numérica (pantalón)') {
   await page.getByRole('button', { name: /Gestionar categorías/ }).click();
   await page.getByPlaceholder('Nueva categoría').fill(nombre);
   await page.locator('select').selectOption({ label: tipo });
@@ -14,7 +14,7 @@ test.describe('Alta por color (sacos, pantalones de vestir)', () => {
   test('alta color × talla crea un SKU por combinación y el color se ve en Venta', async ({ page }) => {
     await login(page, 'Crystal Domínguez');
     await irA(page, 'Alta');
-    await crearCategoriaPorColor(page, 'Sacos', 'XS–XL');
+    await crearCategoriaPorColor(page, 'Sacos', 'XS–XXL');
 
     await page.getByPlaceholder('Ej. Jean recto tiro alto').fill('Saco color UX test');
     await page.getByPlaceholder('Marca').fill('Sastre');

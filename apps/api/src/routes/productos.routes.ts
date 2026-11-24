@@ -28,7 +28,23 @@ router.post('/', authenticate, (req, res) => {
   }
 });
 
-// Alta por tallas: mismo modelo/precio repartido en varias tallas en un solo paso.
+// Tallas/colores ya registrados de una prenda, con su precio (para resurtir).
+router.get('/existentes', authenticate, (req, res) => {
+  try {
+    const { nombre, marca, categoriaId } = req.query;
+    res.json(
+      productosService.listarExistentes(db, {
+        nombre: typeof nombre === 'string' ? nombre : '',
+        marca: typeof marca === 'string' ? marca : '',
+        categoriaId: Number(categoriaId),
+      }),
+    );
+  } catch (err) {
+    handleError(res, err);
+  }
+});
+
+// Alta por tallas: mismo modelo repartido en varias tallas en un solo paso.
 router.post('/lote-tallas', authenticate, (req, res) => {
   try {
     const creados = productosService.crearLotePorTallas(db, req.body ?? {}, req.sesion!.sub);

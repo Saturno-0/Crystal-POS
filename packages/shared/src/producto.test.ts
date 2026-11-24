@@ -16,9 +16,10 @@ describe('tallaValida', () => {
     expect(tallaValida('numerica_pantalon', '2')).toBe(false);
   });
 
-  it('acepta XS–XL para ropa estándar', () => {
+  it('acepta XS–XXL para ropa estándar', () => {
     expect(tallaValida('estandar_ropa', 'M')).toBe(true);
-    expect(tallaValida('estandar_ropa', 'XXL')).toBe(false);
+    expect(tallaValida('estandar_ropa', 'XXL')).toBe(true);
+    expect(tallaValida('estandar_ropa', 'XXXL')).toBe(false);
   });
 
   it('vestidos (sin_talla) no requieren talla o aceptan "Única"', () => {
