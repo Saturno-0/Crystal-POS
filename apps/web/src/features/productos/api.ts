@@ -12,6 +12,13 @@ export function crearCategoria(input: { nombre: string; tipoTalla: TipoTalla; po
   });
 }
 
+export function renombrarCategoria(id: number, nombre: string) {
+  return apiFetch<Categoria>(`/api/categorias/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ nombre }),
+  });
+}
+
 export function eliminarCategoria(id: number) {
   return apiFetch<void>(`/api/categorias/${id}`, { method: 'DELETE' });
 }

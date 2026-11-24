@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import type { TipoTalla } from '@crystal/shared';
+import { claveTexto, type TipoTalla } from '@crystal/shared';
 import { NotFoundError, ValidationError } from '../lib/errors.js';
 import { registrar as registrarAuditoria } from './auditoria.service.js';
 
@@ -59,6 +59,36 @@ export function crear(
   return aPublico(
     db.prepare('SELECT * FROM categorias WHERE id = ?').get(result.lastInsertRowid) as CategoriaRow,
   );
+}
+
+// Solo cambia el nombre: los productos apuntan al id, y cambiar el tipo de talla
+// o el color dejaría inválidos los que ya existen.
+export function renombrar(db: Database.Database, id: number, nombreNuevo: unknown, actorId: number) {
+  const categoria = db.prepare('SELECT * FROM categorias WHERE id = ?').get(id) as
+    | CategoriaRow
+    | undefined;
+  if (!categoria) throw new NotFoundError('Categoría no encontrada');
+
+  const nombre = typeof nombreNuevo === 'string' ? nombreNuevo.trim().replace(/\s+/g, ' ') : '';
+  if (!nombre) throw new ValidationError('El nombre de la categoría es obligatorio');
+  if (nombre === categoria.nombre) return aPublico(categoria);
+
+  // El CSV reconoce categorías sin distinguir mayúsculas ni acentos: dos que
+  // solo difieran en eso serían la misma para la importación.
+  const repetida = (db.prepare('SELECT * FROM categorias WHERE id <> ?').all(id) as CategoriaRow[]).some(
+    (c) => claveTexto(c.nombre) === claveTexto(nombre),
+  );
+  if (repetida) throw new ValidationError('Ya existe una categoría con ese nombre');
+
+  db.prepare('UPDATE categorias SET nombre = ? WHERE id = ?').run(nombre, id);
+  registrarAuditoria(db, {
+    usuarioId: actorId,
+    accion: 'categoria.renombrar',
+    entidad: 'categoria',
+    entidadId: id,
+    detalle: { nombreAnterior: categoria.nombre, nombreNuevo: nombre },
+  });
+  return aPublico({ ...categoria, nombre });
 }
 
 export function eliminar(db: Database.Database, id: number, actorId: number) {

@@ -19,6 +19,14 @@ router.post('/', authenticate, requireRole('admin'), (req, res) => {
   }
 });
 
+router.patch('/:id', authenticate, requireRole('admin'), (req, res) => {
+  try {
+    res.json(categoriasService.renombrar(db, Number(req.params.id), req.body?.nombre, req.sesion!.sub));
+  } catch (err) {
+    handleError(res, err);
+  }
+});
+
 router.delete('/:id', authenticate, requireRole('admin'), (req, res) => {
   try {
     categoriasService.eliminar(db, Number(req.params.id), req.sesion!.sub);

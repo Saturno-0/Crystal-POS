@@ -13,8 +13,19 @@ const ETIQUETA_TIPO_TALLA: Record<TipoTalla, string> = {
 
 const TIPOS_TALLA: TipoTalla[] = ['numerica_pantalon', 'estandar_ropa', 'sin_talla'];
 
+const botonFila = {
+  minHeight: 44,
+  padding: '0 10px',
+  borderRadius: 6,
+  border: '1px solid var(--border2)',
+  background: 'transparent',
+  color: 'var(--text)',
+  font: '600 11px/1 var(--font-ui)',
+  cursor: 'pointer',
+} as const;
+
 /**
- * Alta/baja de categorías — solo Admin. No es parte de HU-2.x del handoff
+ * Alta/baja y cambio de nombre de categorías — solo Admin. No es parte de HU-2.x del handoff
  * original; se agregó porque la dueña quiere poder ajustar el catálogo de
  * categorías sin tocar código. Eliminar solo se permite sin productos
  * asociados (lo aplica el backend).
@@ -32,6 +43,7 @@ export function GestionCategorias({
   const [tipoTalla, setTipoTalla] = useState<TipoTalla>('estandar_ropa');
   const [porColor, setPorColor] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [edicion, setEdicion] = useState<{ id: number; nombre: string } | null>(null);
 
   async function agregar() {
     if (!nombre.trim() || enviando) return;
@@ -48,6 +60,21 @@ export function GestionCategorias({
       mostrar(`Categoría "${nombre.trim()}" agregada`);
     } catch (err) {
       mostrar(err instanceof ApiError ? err.message : 'No se pudo crear la categoría');
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  async function renombrar() {
+    if (!edicion || !edicion.nombre.trim() || enviando) return;
+    setEnviando(true);
+    try {
+      const categoria = await productosApi.renombrarCategoria(edicion.id, edicion.nombre);
+      setEdicion(null);
+      onCambio();
+      mostrar(`Categoría renombrada a "${categoria.nombre}"`);
+    } catch (err) {
+      mostrar(err instanceof ApiError ? err.message : 'No se pudo renombrar la categoría');
     } finally {
       setEnviando(false);
     }
@@ -93,31 +120,58 @@ export function GestionCategorias({
             background: 'var(--surface2)',
           }}
         >
-          {categorias.map((c) => (
-            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ flex: 1, font: "500 13px/1.3 var(--font-ui)" }}>{c.nombre}</span>
-              <span style={{ font: "400 11px/1 var(--font-mono)", color: 'var(--faint)' }}>
-                {ETIQUETA_TIPO_TALLA[c.tipoTalla]}
-                {c.porColor ? ' · por color' : ''}
-              </span>
-              <button
-                type="button"
-                onClick={() => eliminar(c)}
-                style={{
-                  height: 28,
-                  padding: '0 10px',
-                  borderRadius: 6,
-                  border: '1px solid var(--bad)',
-                  background: 'transparent',
-                  color: 'var(--badtext)',
-                  font: "600 11px/1 var(--font-ui)",
-                  cursor: 'pointer',
+          {categorias.map((c) =>
+            edicion?.id === c.id ? (
+              <form
+                key={c.id}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  renombrar();
                 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}
               >
-                Eliminar
-              </button>
-            </div>
-          ))}
+                <input
+                  className={styles.inputSecundario}
+                  style={{ flex: 1, minWidth: 140, height: 44 }}
+                  aria-label={`Nuevo nombre de ${c.nombre}`}
+                  value={edicion.nombre}
+                  onChange={(e) => setEdicion({ id: c.id, nombre: e.target.value })}
+                  onKeyDown={(e) => e.key === 'Escape' && setEdicion(null)}
+                  autoFocus
+                />
+                <button type="submit" disabled={enviando || !edicion.nombre.trim()} style={botonFila}>
+                  Guardar
+                </button>
+                <button type="button" disabled={enviando} onClick={() => setEdicion(null)} style={botonFila}>
+                  Cancelar
+                </button>
+              </form>
+            ) : (
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ flex: 1, minWidth: 100, font: "500 13px/1.3 var(--font-ui)" }}>{c.nombre}</span>
+                <span style={{ font: "400 11px/1 var(--font-mono)", color: 'var(--faint)' }}>
+                  {ETIQUETA_TIPO_TALLA[c.tipoTalla]}
+                  {c.porColor ? ' · por color' : ''}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Renombrar ${c.nombre}`}
+                  disabled={enviando}
+                  onClick={() => setEdicion({ id: c.id, nombre: c.nombre })}
+                  style={botonFila}
+                >
+                  Renombrar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => eliminar(c)}
+                  style={{ ...botonFila, border: '1px solid var(--bad)', color: 'var(--badtext)' }}
+                >
+                  Eliminar
+                </button>
+              </div>
+            ),
+          )}
 
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <input
